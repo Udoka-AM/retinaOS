@@ -1,10 +1,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { Menu, X } from "lucide-react";
 import { RetinaWordmark } from "@/components/brand/RetinaMark";
 import { IconArrowUpRight } from "@/components/brand/Icons";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 const links = [
@@ -62,10 +63,10 @@ export function Nav() {
                 Docs
               </Button>
             </a>
-            <Button size="sm" className="group">
+            <Link href="/terminal" className={cn(buttonVariants({ size: "sm" }), "group")}>
               Launch Terminal
               <IconArrowUpRight className="transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
-            </Button>
+            </Link>
           </div>
 
           <button
@@ -93,9 +94,13 @@ export function Nav() {
               <Button size="sm" variant="outline" className="flex-1">
                 Docs
               </Button>
-              <Button size="sm" className="flex-1">
+              <Link
+                href="/terminal"
+                onClick={() => setOpen(false)}
+                className={cn(buttonVariants({ size: "sm" }), "flex-1")}
+              >
                 Launch Terminal
-              </Button>
+              </Link>
             </div>
           </div>
         )}

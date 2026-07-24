@@ -1,6 +1,8 @@
-import { Button } from "@/components/ui/button";
+import Link from "next/link";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { RetinaMark } from "@/components/brand/RetinaMark";
 import { IconArrowUpRight } from "@/components/brand/Icons";
+import { cn } from "@/lib/utils";
 
 export function CTA() {
   return (
@@ -20,10 +22,10 @@ export function CTA() {
               Open the Terminal and start scanning the market in seconds. No login to browse.
             </p>
             <div className="mt-9 flex flex-wrap items-center justify-center gap-3">
-              <Button size="lg" className="group">
+              <Link href="/terminal" className={cn(buttonVariants({ size: "lg" }), "group")}>
                 Launch Terminal
                 <IconArrowUpRight className="transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
-              </Button>
+              </Link>
               <Button size="lg" variant="outline" className="border-fg/25 bg-ink-2/40 text-fg hover:border-lime/50">
                 Read the docs
               </Button>

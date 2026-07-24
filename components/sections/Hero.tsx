@@ -1,4 +1,5 @@
-import { Button } from "@/components/ui/button";
+import Link from "next/link";
+import { buttonVariants } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { RetinaMark } from "@/components/brand/RetinaMark";
 import {
@@ -51,13 +52,16 @@ export function Hero() {
           </p>
 
           <div className="mt-8 flex flex-wrap items-center gap-3">
-            <Button size="lg" className="group">
+            <Link href="/terminal" className={cn(buttonVariants({ size: "lg" }), "group")}>
               Launch Terminal
               <IconArrowUpRight className="transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
-            </Button>
-            <Button size="lg" variant="outline">
+            </Link>
+            <Link
+              href="/terminal"
+              className={cn(buttonVariants({ size: "lg", variant: "outline" }))}
+            >
               Explore the feed
-            </Button>
+            </Link>
           </div>
 
           <div className="mt-10 flex flex-wrap items-center gap-x-8 gap-y-4 text-sm text-fg-dim">

@@ -1,6 +1,8 @@
+import Link from "next/link";
 import { RetinaWordmark, RetinaMark } from "@/components/brand/RetinaMark";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { IconArrowUpRight } from "@/components/brand/Icons";
+import { cn } from "@/lib/utils";
 
 const cols = [
   {
@@ -44,10 +46,10 @@ export function Footer() {
             </div>
           </div>
           <div className="flex gap-3">
-            <Button className="group">
+            <Link href="/terminal" className={cn(buttonVariants(), "group")}>
               Launch Terminal
               <IconArrowUpRight className="transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
-            </Button>
+            </Link>
             <Button variant="outline">Read the docs</Button>
           </div>
         </div>
