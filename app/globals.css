@@ -17,11 +17,11 @@
   --color-wallet-deep: #d98816;
 
   /* Surfaces — dark-mode-first, dilated-pupil metaphor */
-  --color-ink: #08090b;
-  --color-ink-2: #0a0b0d;
-  --color-panel: #101216;
-  --color-panel-2: #16191f;
-  --color-hairline: #23272f;
+  --color-ink: #030304;
+  --color-ink-2: #060708;
+  --color-panel: #0c0e12;
+  --color-panel-2: #111318;
+  --color-hairline: #1d2027;
 
   /* Foreground */
   --color-fg: #f4f6f8;
@@ -77,11 +77,36 @@ body {
 
 /* Ambient mesh backdrop for dark sections */
 .bg-aurora {
+  position: relative;
+  isolation: isolate;
   background:
-    radial-gradient(60% 55% at 15% 0%, color-mix(in srgb, var(--color-lime) 14%, transparent) 0%, transparent 60%),
-    radial-gradient(50% 50% at 100% 10%, color-mix(in srgb, var(--color-cortex) 12%, transparent) 0%, transparent 55%),
-    radial-gradient(45% 60% at 85% 100%, color-mix(in srgb, var(--color-wallet) 8%, transparent) 0%, transparent 60%),
+    radial-gradient(60% 55% at 15% 0%, color-mix(in srgb, var(--color-lime) 12%, transparent) 0%, transparent 60%),
+    radial-gradient(50% 50% at 100% 10%, color-mix(in srgb, var(--color-cortex) 10%, transparent) 0%, transparent 55%),
+    radial-gradient(45% 60% at 85% 100%, color-mix(in srgb, var(--color-wallet) 7%, transparent) 0%, transparent 60%),
     var(--color-ink);
+}
+/* Slow-drifting animated aurora layer */
+.bg-aurora::before {
+  content: "";
+  position: absolute;
+  inset: -25%;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(38% 38% at 22% 28%, color-mix(in srgb, var(--color-lime) 16%, transparent), transparent 70%),
+    radial-gradient(34% 34% at 80% 22%, color-mix(in srgb, var(--color-cortex) 14%, transparent), transparent 70%),
+    radial-gradient(40% 42% at 62% 88%, color-mix(in srgb, var(--color-wallet) 10%, transparent), transparent 70%);
+  filter: blur(40px) saturate(120%);
+  animation: aurora-move 22s var(--ease-out-expo) infinite alternate;
+}
+
+/* Reusable ambient blob */
+.aurora-blob {
+  position: absolute;
+  border-radius: 9999px;
+  filter: blur(90px);
+  pointer-events: none;
+  z-index: 0;
 }
 
 .bg-grid {
@@ -176,6 +201,156 @@ body {
 }
 .animate-marquee { animation: marquee 28s linear infinite; }
 
+/* ---------- wallet showcase motion ---------- */
+/* Looping staggered policy-check reveal */
+@keyframes tick-in {
+  0%, 6%   { opacity: 0; transform: scale(0.5); }
+  16%, 90% { opacity: 1; transform: scale(1); }
+  100%     { opacity: 1; transform: scale(1); }
+}
+.animate-tick { animation: tick-in 5s var(--ease-out-expo) infinite; }
+
+/* Confirm bar fills then resets */
+@keyframes bar-fill {
+  0%, 8%    { width: 0%; }
+  60%, 94%  { width: 100%; }
+  100%      { width: 0%; }
+}
+.animate-bar { animation: bar-fill 5s var(--ease-out-expo) infinite; }
+
+/* Button sheen sweep */
+@keyframes sheen {
+  0%        { transform: translateX(-140%) skewX(-18deg); }
+  55%, 100% { transform: translateX(260%) skewX(-18deg); }
+}
+.animate-sheen { animation: sheen 4.5s var(--ease-out-expo) infinite; }
+
+/* Slow rotating aperture ring */
+@keyframes ring-scan { to { transform: rotate(360deg); } }
+.animate-ring { animation: ring-scan 14s linear infinite; }
+
+/* Gentle counter-float for orbiting chips */
+@keyframes float-soft {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-14px); }
+}
+.animate-float-soft { animation: float-soft 8s var(--ease-out-expo) infinite; }
+
 /* Thin scrollbars inside dark panels */
 .scroll-slim::-webkit-scrollbar { height: 6px; width: 6px; }
 .scroll-slim::-webkit-scrollbar-thumb { background: var(--color-hairline); border-radius: 999px; }
+
+/* ---------- richer motion ---------- */
+@keyframes aurora-move {
+  0%   { transform: translate3d(-3%, -2%, 0) scale(1) rotate(0deg); }
+  50%  { transform: translate3d(4%, 3%, 0) scale(1.12) rotate(4deg); }
+  100% { transform: translate3d(-2%, 4%, 0) scale(1.05) rotate(-3deg); }
+}
+@keyframes drift-a {
+  0%   { transform: translate3d(0, 0, 0) scale(1); }
+  50%  { transform: translate3d(7%, -6%, 0) scale(1.14); }
+  100% { transform: translate3d(-5%, 6%, 0) scale(1.05); }
+}
+@keyframes drift-b {
+  0%   { transform: translate3d(0, 0, 0) scale(1); }
+  50%  { transform: translate3d(-8%, 6%, 0) scale(1.12); }
+  100% { transform: translate3d(6%, -4%, 0) scale(1.04); }
+}
+.animate-drift-a { animation: drift-a 24s var(--ease-out-expo) infinite alternate; }
+.animate-drift-b { animation: drift-b 28s var(--ease-out-expo) infinite alternate; }
+
+@keyframes reveal-in {
+  from { opacity: 0; transform: translateY(34px) scale(0.985); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+@keyframes glow-breathe {
+  0%, 100% { opacity: 0.55; }
+  50%      { opacity: 1; }
+}
+.animate-breathe { animation: glow-breathe 6s ease-in-out infinite; }
+
+/* Scroll reveal — hidden state only applies once JS marks the doc ready,
+   so content is always visible if JS is unavailable. */
+.reveal-ready .reveal {
+  opacity: 0;
+  transform: translateY(34px) scale(0.99);
+  transition:
+    opacity 0.8s var(--ease-out-expo),
+    transform 0.8s var(--ease-out-expo);
+  will-change: opacity, transform;
+}
+.reveal-ready .reveal.reveal-in {
+  opacity: 1;
+  transform: none;
+}
+
+/* ---------- unified tile: lift + gradient border on hover ---------- */
+.tile {
+  position: relative;
+  isolation: isolate;
+  border: 1px solid var(--color-hairline);
+  background: color-mix(in srgb, var(--color-panel) 55%, transparent);
+  transition:
+    transform 0.55s var(--ease-out-expo),
+    border-color 0.55s var(--ease-out-expo),
+    box-shadow 0.55s var(--ease-out-expo),
+    background-color 0.55s var(--ease-out-expo);
+}
+.tile:hover {
+  transform: translateY(-7px);
+  border-color: transparent;
+  background: color-mix(in srgb, var(--color-panel) 78%, transparent);
+  box-shadow: 0 34px 90px -44px rgba(0, 0, 0, 0.95), 0 10px 30px -18px rgba(0, 0, 0, 0.7);
+}
+/* gradient border, revealed on hover */
+.tile::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(
+    140deg,
+    var(--tile-a, var(--color-lime)),
+    transparent 42%,
+    var(--tile-b, var(--color-cortex))
+  );
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  opacity: 0;
+  transition: opacity 0.55s var(--ease-out-expo);
+  pointer-events: none;
+  z-index: 1;
+}
+.tile:hover::after { opacity: 0.95; }
+/* soft interior glow that follows the accent */
+.tile::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: radial-gradient(120% 80% at 50% -10%, var(--tile-a, var(--color-lime)) 0%, transparent 55%);
+  opacity: 0;
+  transition: opacity 0.55s var(--ease-out-expo);
+  pointer-events: none;
+  z-index: -1;
+  mix-blend-mode: screen;
+}
+.tile:hover::before { opacity: 0.1; }
+
+.tile-lime { --tile-a: var(--color-lime); --tile-b: color-mix(in srgb, var(--color-lime) 30%, transparent); }
+.tile-cortex { --tile-a: var(--color-cortex); --tile-b: color-mix(in srgb, var(--color-cortex) 30%, transparent); }
+.tile-wallet { --tile-a: var(--color-wallet); --tile-b: color-mix(in srgb, var(--color-wallet) 30%, transparent); }
+
+/* ---------- accessibility ---------- */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}

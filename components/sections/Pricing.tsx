@@ -59,7 +59,7 @@ export function Pricing() {
   return (
     <section id="pricing" className="relative py-24 sm:py-32">
       <div className="mx-auto max-w-7xl px-4 sm:px-6">
-        <div className="mx-auto max-w-2xl text-center">
+        <div className="reveal mx-auto max-w-2xl text-center">
           <p className="text-sm font-semibold uppercase tracking-[0.2em] text-lime">Pricing</p>
           <h2 className="mt-4 text-balance text-4xl font-bold tracking-tight sm:text-5xl">
             Start free. Scale when you&apos;re ready.
@@ -74,10 +74,10 @@ export function Pricing() {
             <div
               key={t.name}
               className={cn(
-                "relative flex flex-col rounded-3xl border p-8 transition-all duration-500",
+                "reveal relative flex flex-col rounded-3xl p-8",
                 t.featured
-                  ? "border-gradient bg-panel/60 shadow-float lg:-translate-y-3"
-                  : "border-hairline bg-panel/30 hover:border-lime/25"
+                  ? "border-gradient glow-lime bg-panel/60 shadow-float lg:-translate-y-3"
+                  : "tile tile-lime border border-hairline bg-panel/30"
               )}
             >
               {t.featured && (

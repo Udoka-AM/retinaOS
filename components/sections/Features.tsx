@@ -1,4 +1,11 @@
-import { Sparkles, ShieldAlert, Bell, Users, Activity, Gauge } from "lucide-react";
+import {
+  IconSpark,
+  IconGauge,
+  IconCluster,
+  IconShieldAlert,
+  IconRadar,
+  IconTiming,
+} from "@/components/brand/Icons";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 
@@ -6,7 +13,7 @@ export function Features() {
   return (
     <section className="bg-ink-2 py-24 sm:py-32">
       <div className="mx-auto max-w-7xl px-4 sm:px-6">
-        <div className="mx-auto max-w-2xl text-center">
+        <div className="reveal mx-auto max-w-2xl text-center">
           <p className="text-sm font-semibold uppercase tracking-[0.2em] text-lime">Capabilities</p>
           <h2 className="mt-4 text-balance text-4xl font-bold tracking-tight sm:text-5xl">
             Everything on-chain, made legible
@@ -15,10 +22,10 @@ export function Features() {
 
         <div className="mt-16 grid auto-rows-[minmax(0,1fr)] gap-5 md:grid-cols-6">
           {/* AI analyst — wide */}
-          <Card className="md:col-span-4 md:row-span-2">
+          <Card accent="cortex" className="md:col-span-4 md:row-span-2">
             <div className="flex h-full flex-col">
               <div className="flex items-center gap-3">
-                <IconBox tone="cortex"><Sparkles size={20} /></IconBox>
+                <IconBox tone="cortex"><IconSpark size={20} /></IconBox>
                 <Badge variant="cortex">⌘K</Badge>
               </div>
               <h3 className="mt-6 text-2xl font-bold">AI Market Analyst</h3>
@@ -38,40 +45,40 @@ export function Features() {
             </div>
           </Card>
 
-          <Card className="md:col-span-2">
-            <IconBox tone="lime"><Gauge size={20} /></IconBox>
+          <Card accent="lime" className="md:col-span-2">
+            <IconBox tone="lime"><IconGauge size={20} /></IconBox>
             <h3 className="mt-5 text-lg font-bold">Token risk 0–100</h3>
             <p className="mt-2 text-sm leading-relaxed text-fg-muted">
               Composite scores on concentration, liquidity, and wash-trade signals.
             </p>
           </Card>
 
-          <Card className="md:col-span-2">
-            <IconBox tone="lime"><Users size={20} /></IconBox>
+          <Card accent="lime" className="md:col-span-2">
+            <IconBox tone="lime"><IconCluster size={20} /></IconBox>
             <h3 className="mt-5 text-lg font-bold">Holder analysis</h3>
             <p className="mt-2 text-sm leading-relaxed text-fg-muted">
               Top-holder concentration with sybil clusters merged into single entities.
             </p>
           </Card>
 
-          <Card className="md:col-span-2">
-            <IconBox tone="risk"><ShieldAlert size={20} /></IconBox>
+          <Card accent="lime" className="md:col-span-2">
+            <IconBox tone="risk"><IconShieldAlert size={20} /></IconBox>
             <h3 className="mt-5 text-lg font-bold">Five risk flags</h3>
             <p className="mt-2 text-sm leading-relaxed text-fg-muted">
               Wash trading, concentration, liquidity pulled, smart money exiting, sybil clusters.
             </p>
           </Card>
 
-          <Card className="md:col-span-2">
-            <IconBox tone="wallet"><Bell size={20} /></IconBox>
+          <Card accent="wallet" className="md:col-span-2">
+            <IconBox tone="wallet"><IconRadar size={20} /></IconBox>
             <h3 className="mt-5 text-lg font-bold">Filter-based alerts</h3>
             <p className="mt-2 text-sm leading-relaxed text-fg-muted">
               Turn any filter into an alert. Email + push, with an AI summary of every match.
             </p>
           </Card>
 
-          <Card className="md:col-span-2">
-            <IconBox tone="lime"><Activity size={20} /></IconBox>
+          <Card accent="lime" className="md:col-span-2">
+            <IconBox tone="lime"><IconTiming size={20} /></IconBox>
             <h3 className="mt-5 text-lg font-bold">Entry-timing signals</h3>
             <p className="mt-2 text-sm leading-relaxed text-fg-muted">
               See whether a wallet consistently buys before or after major moves.
@@ -83,14 +90,23 @@ export function Features() {
   );
 }
 
-function Card({ className, children }: { className?: string; children: React.ReactNode }) {
+const tileAccent = {
+  lime: "tile-lime",
+  cortex: "tile-cortex",
+  wallet: "tile-wallet",
+} as const;
+
+function Card({
+  accent = "lime",
+  className,
+  children,
+}: {
+  accent?: keyof typeof tileAccent;
+  className?: string;
+  children: React.ReactNode;
+}) {
   return (
-    <div
-      className={cn(
-        "group relative overflow-hidden rounded-3xl border border-hairline bg-panel/40 p-7 transition-colors duration-500 hover:border-lime/25",
-        className
-      )}
-    >
+    <div className={cn("tile group overflow-hidden rounded-3xl p-7", tileAccent[accent], className)}>
       {children}
     </div>
   );
@@ -105,7 +121,12 @@ const toneMap = {
 
 function IconBox({ tone, children }: { tone: keyof typeof toneMap; children: React.ReactNode }) {
   return (
-    <span className={cn("flex size-11 items-center justify-center rounded-2xl ring-1", toneMap[tone])}>
+    <span
+      className={cn(
+        "flex size-11 items-center justify-center rounded-2xl ring-1 transition-transform duration-500 group-hover:scale-110",
+        toneMap[tone]
+      )}
+    >
       {children}
     </span>
   );

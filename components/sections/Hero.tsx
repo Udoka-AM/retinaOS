@@ -1,7 +1,12 @@
-import { ArrowUpRight, Sparkles, TrendingUp, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { RetinaMark } from "@/components/brand/RetinaMark";
+import {
+  IconArrowUpRight,
+  IconSpark,
+  IconTrend,
+  IconLock,
+} from "@/components/brand/Icons";
 import { cn } from "@/lib/utils";
 
 const feedRows = [
@@ -21,9 +26,10 @@ export function Hero() {
   return (
     <section id="top" className="relative overflow-hidden bg-aurora pt-32 pb-20 sm:pt-40 sm:pb-28">
       <div className="pointer-events-none absolute inset-0 bg-grid" />
-      <div className="pointer-events-none absolute -top-40 left-1/2 h-[520px] w-[820px] -translate-x-1/2 rounded-full bg-lime/10 blur-[120px]" />
+      <div className="aurora-blob animate-drift-a -top-40 left-1/4 h-[440px] w-[640px] bg-lime/12" />
+      <div className="aurora-blob animate-drift-b top-20 right-0 h-[420px] w-[520px] bg-cortex/10" />
 
-      <div className="relative mx-auto grid max-w-7xl items-center gap-14 px-4 sm:px-6 lg:grid-cols-[1.05fr_0.95fr]">
+      <div className="relative z-10 mx-auto grid max-w-7xl items-center gap-14 px-4 sm:px-6 lg:grid-cols-[1.05fr_0.95fr]">
         {/* copy */}
         <div className="animate-rise">
           <Badge variant="lime" className="mb-6">
@@ -47,7 +53,7 @@ export function Hero() {
           <div className="mt-8 flex flex-wrap items-center gap-3">
             <Button size="lg" className="group">
               Launch Terminal
-              <ArrowUpRight className="transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+              <IconArrowUpRight className="transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
             </Button>
             <Button size="lg" variant="outline">
               Explore the feed
@@ -56,13 +62,13 @@ export function Hero() {
 
           <div className="mt-10 flex flex-wrap items-center gap-x-8 gap-y-4 text-sm text-fg-dim">
             <span className="flex items-center gap-2">
-              <TrendingUp size={16} className="text-lime" /> No login to browse
+              <IconTrend size={16} className="text-lime" /> No login to browse
             </span>
             <span className="flex items-center gap-2">
-              <ShieldCheck size={16} className="text-lime" /> Non-custodial
+              <IconLock size={16} className="text-lime" /> Non-custodial
             </span>
             <span className="flex items-center gap-2">
-              <Sparkles size={16} className="text-lime" /> AI-grounded on-chain
+              <IconSpark size={16} className="text-lime" /> AI-grounded on-chain
             </span>
           </div>
         </div>
@@ -128,7 +134,7 @@ export function Hero() {
 
             {/* AI summary strip */}
             <div className="mt-1 flex items-start gap-2.5 rounded-2xl bg-cortex/10 p-3">
-              <Sparkles size={15} className="mt-0.5 shrink-0 text-cortex" />
+              <IconSpark size={15} className="mt-0.5 shrink-0 text-cortex" />
               <p className="text-[12px] leading-relaxed text-fg-muted">
                 <span className="font-semibold text-cortex">Cortex:</span> NOVA momentum
                 driven by 3 Early-Mover wallets accumulating; liquidity up 22% in 1h.
