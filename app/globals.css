@@ -1,0 +1,181 @@
+@import "tailwindcss";
+
+/* ============================================================
+   RetinaOS design tokens — logo-derived lime, near-black base
+   ============================================================ */
+@theme {
+  /* Brand — primary accent sampled from the RetinaOS logo */
+  --color-lime: #c3f012;
+  --color-lime-bright: #d4ff2e;
+  --color-lime-dark: #b2df10;
+  --color-lime-deep: #8fb00c;
+
+  /* Product accents (subordinate) */
+  --color-cortex: #a855f7; /* violet — Cortex */
+  --color-cortex-deep: #7c3aed;
+  --color-wallet: #f5a524; /* amber — Retina Wallet */
+  --color-wallet-deep: #d98816;
+
+  /* Surfaces — dark-mode-first, dilated-pupil metaphor */
+  --color-ink: #08090b;
+  --color-ink-2: #0a0b0d;
+  --color-panel: #101216;
+  --color-panel-2: #16191f;
+  --color-hairline: #23272f;
+
+  /* Foreground */
+  --color-fg: #f4f6f8;
+  --color-fg-muted: #9aa3ad;
+  --color-fg-dim: #6b7480;
+
+  /* Semantic risk colors (kept distinct from brand) */
+  --color-risk: #ff4d4d;
+  --color-warn: #ffb020;
+  --color-safe: #33d17a;
+
+  /* Type */
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, -apple-system, sans-serif;
+
+  /* Radii */
+  --radius-xl: 1.25rem;
+  --radius-2xl: 1.75rem;
+
+  /* Motion */
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* ---------- base ---------- */
+* {
+  border-color: var(--color-hairline);
+}
+
+html {
+  scroll-behavior: smooth;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+body {
+  background: var(--color-ink);
+  color: var(--color-fg);
+  font-feature-settings: "ss01", "cv01";
+}
+
+/* Tabular numerals for all figures/prices/scores */
+.tabular {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum";
+  letter-spacing: -0.01em;
+}
+
+::selection {
+  background: color-mix(in srgb, var(--color-lime) 35%, transparent);
+  color: #fff;
+}
+
+/* ---------- gradient / glow / glass utilities ---------- */
+
+/* Ambient mesh backdrop for dark sections */
+.bg-aurora {
+  background:
+    radial-gradient(60% 55% at 15% 0%, color-mix(in srgb, var(--color-lime) 14%, transparent) 0%, transparent 60%),
+    radial-gradient(50% 50% at 100% 10%, color-mix(in srgb, var(--color-cortex) 12%, transparent) 0%, transparent 55%),
+    radial-gradient(45% 60% at 85% 100%, color-mix(in srgb, var(--color-wallet) 8%, transparent) 0%, transparent 60%),
+    var(--color-ink);
+}
+
+.bg-grid {
+  background-image:
+    linear-gradient(to right, color-mix(in srgb, var(--color-hairline) 55%, transparent) 1px, transparent 1px),
+    linear-gradient(to bottom, color-mix(in srgb, var(--color-hairline) 55%, transparent) 1px, transparent 1px);
+  background-size: 56px 56px;
+  -webkit-mask-image: radial-gradient(ellipse 70% 60% at 50% 30%, #000 0%, transparent 75%);
+  mask-image: radial-gradient(ellipse 70% 60% at 50% 30%, #000 0%, transparent 75%);
+}
+
+/* Lime text gradient */
+.text-gradient-lime {
+  background: linear-gradient(120deg, var(--color-lime-bright), var(--color-lime) 45%, var(--color-lime-deep));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.text-gradient-soft {
+  background: linear-gradient(120deg, #ffffff 0%, #cfd6dd 55%, #8b939c 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* Glassmorphism panel */
+.glass {
+  background: color-mix(in srgb, var(--color-panel) 70%, transparent);
+  backdrop-filter: blur(18px) saturate(140%);
+  -webkit-backdrop-filter: blur(18px) saturate(140%);
+  border: 1px solid color-mix(in srgb, #ffffff 8%, transparent);
+}
+
+/* Gradient hairline border via mask */
+.border-gradient {
+  position: relative;
+}
+.border-gradient::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(140deg, color-mix(in srgb, var(--color-lime) 55%, transparent), transparent 40%, color-mix(in srgb, var(--color-cortex) 30%, transparent));
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+}
+
+/* Lime glow */
+.glow-lime {
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--color-lime) 30%, transparent),
+    0 12px 40px -12px color-mix(in srgb, var(--color-lime) 45%, transparent);
+}
+
+.shadow-float {
+  box-shadow: 0 30px 80px -30px rgba(0, 0, 0, 0.9), 0 8px 24px -12px rgba(0, 0, 0, 0.6);
+}
+
+/* Reticle sweep animation (Terminal motif) */
+@keyframes sweep {
+  0% { transform: rotate(0deg); opacity: 0.6; }
+  50% { opacity: 1; }
+  100% { transform: rotate(360deg); opacity: 0.6; }
+}
+.animate-sweep { animation: sweep 6s linear infinite; }
+
+@keyframes float-y {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+.animate-float { animation: float-y 7s var(--ease-out-expo) infinite; }
+
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; box-shadow: 0 0 0 0 color-mix(in srgb, var(--color-lime) 60%, transparent); }
+  50% { opacity: 0.85; box-shadow: 0 0 0 6px color-mix(in srgb, var(--color-lime) 0%, transparent); }
+}
+.animate-live { animation: pulse-dot 2s ease-in-out infinite; }
+
+@keyframes rise {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.animate-rise { animation: rise 0.8s var(--ease-out-expo) both; }
+
+/* Marquee */
+@keyframes marquee {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+.animate-marquee { animation: marquee 28s linear infinite; }
+
+/* Thin scrollbars inside dark panels */
+.scroll-slim::-webkit-scrollbar { height: 6px; width: 6px; }
+.scroll-slim::-webkit-scrollbar-thumb { background: var(--color-hairline); border-radius: 999px; }
