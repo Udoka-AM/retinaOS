@@ -27,7 +27,12 @@ const NAV: NavItem[] = [
     Icon: IconCortex,
     isActive: (p) => p.startsWith("/terminal/token"),
   },
-  { label: "Wallets", Icon: IconAperture, soon: true },
+  {
+    label: "Wallets",
+    href: "/terminal",
+    Icon: IconAperture,
+    isActive: (p) => p.startsWith("/terminal/wallet"),
+  },
   { label: "Alerts", Icon: IconRadar, soon: true },
 ];
 

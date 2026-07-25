@@ -6,7 +6,7 @@ import { IconArrowUpRight, IconSpark } from "@/components/brand/Icons";
 import { PriceChart } from "@/components/terminal/token/PriceChart";
 import { TradesFeed } from "@/components/terminal/token/TradesFeed";
 import { HolderPanel } from "@/components/terminal/token/HolderPanel";
-import { RiskPanel } from "@/components/terminal/token/RiskPanel";
+import { CortexTokenPanel } from "@/components/terminal/CortexPanels";
 
 export default async function TokenPage({
   params,
@@ -124,7 +124,7 @@ export default async function TokenPage({
           <TradesFeed pool={d.poolAddress} initial={d.trades} />
         </div>
         <div className="space-y-4">
-          <RiskPanel risk={d.risk} />
+          <CortexTokenPanel cortex={d.cortex} />
           <HolderPanel onchain={d.onchain} symbol={d.symbol} />
         </div>
       </div>

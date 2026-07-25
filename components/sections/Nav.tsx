@@ -5,13 +5,13 @@ import Link from "next/link";
 import { Menu, X } from "lucide-react";
 import { RetinaWordmark } from "@/components/brand/RetinaMark";
 import { IconArrowUpRight } from "@/components/brand/Icons";
-import { Button, buttonVariants } from "@/components/ui/button";
+import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 const links = [
-  { label: "Terminal", href: "#suite" },
+  { label: "Terminal", href: "/terminal" },
   { label: "Cortex", href: "#suite" },
-  { label: "Wallet", href: "#suite" },
+  { label: "Wallet", href: "#wallet" },
   { label: "How it works", href: "#flow" },
   { label: "Pricing", href: "#pricing" },
 ];
@@ -58,10 +58,13 @@ export function Nav() {
           </div>
 
           <div className="hidden items-center gap-2 lg:flex">
-            <a href="https://retinaos.mintlify.app" target="_blank" rel="noreferrer">
-              <Button variant="ghost" size="sm">
-                Docs
-              </Button>
+            <a
+              href="https://retinaos.mintlify.app"
+              target="_blank"
+              rel="noreferrer"
+              className={cn(buttonVariants({ variant: "ghost", size: "sm" }))}
+            >
+              Docs
             </a>
             <Link href="/terminal" className={cn(buttonVariants({ size: "sm" }), "group")}>
               Launch Terminal
@@ -91,9 +94,15 @@ export function Nav() {
               </a>
             ))}
             <div className="flex gap-2 pt-2">
-              <Button size="sm" variant="outline" className="flex-1">
+              <a
+                href="https://retinaos.mintlify.app"
+                target="_blank"
+                rel="noreferrer"
+                onClick={() => setOpen(false)}
+                className={cn(buttonVariants({ size: "sm", variant: "outline" }), "flex-1")}
+              >
                 Docs
-              </Button>
+              </a>
               <Link
                 href="/terminal"
                 onClick={() => setOpen(false)}

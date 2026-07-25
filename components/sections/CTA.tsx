@@ -1,8 +1,10 @@
 import Link from "next/link";
-import { Button, buttonVariants } from "@/components/ui/button";
+import { buttonVariants } from "@/components/ui/button";
 import { RetinaMark } from "@/components/brand/RetinaMark";
 import { IconArrowUpRight } from "@/components/brand/Icons";
 import { cn } from "@/lib/utils";
+
+const DOCS = "https://retinaos.mintlify.app";
 
 export function CTA() {
   return (
@@ -26,9 +28,17 @@ export function CTA() {
                 Launch Terminal
                 <IconArrowUpRight className="transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
               </Link>
-              <Button size="lg" variant="outline" className="border-fg/25 bg-ink-2/40 text-fg hover:border-lime/50">
+              <a
+                href={DOCS}
+                target="_blank"
+                rel="noreferrer"
+                className={cn(
+                  buttonVariants({ size: "lg", variant: "outline" }),
+                  "border-fg/25 bg-ink-2/40 text-fg hover:border-lime/50"
+                )}
+              >
                 Read the docs
-              </Button>
+              </a>
             </div>
           </div>
         </div>

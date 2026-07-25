@@ -1,12 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import type { Trade } from "@/lib/data";
 import { fmtUsd, shortAddr } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
 const POLL_MS = 12_000;
-const addrUrl = (a: string) => `https://robinhoodchain.blockscout.com/address/${a}`;
 
 function ago(ts: number): string {
   const s = Math.max(0, Math.floor(Date.now() / 1000 - ts));
@@ -57,14 +57,12 @@ export function TradesFeed({ pool, initial }: { pool: string; initial: Trade[] }
               >
                 {t.kind}
               </span>
-              <a
-                href={addrUrl(t.wallet)}
-                target="_blank"
-                rel="noreferrer"
+              <Link
+                href={`/terminal/wallet/${t.wallet}`}
                 className="tabular truncate text-fg-muted transition-colors hover:text-lime"
               >
                 {shortAddr(t.wallet)}
-              </a>
+              </Link>
               <div className="text-right">
                 <span className="tabular font-semibold text-fg">{fmtUsd(t.amountUsd)}</span>
                 <span className="tabular ml-2 text-xs text-fg-dim">{ago(t.ts)}</span>

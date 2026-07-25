@@ -171,8 +171,8 @@ export function DiscoveryFeed({
             {filtered.length} of {rows.length} tokens
           </p>
           <p className="text-[11px] leading-relaxed text-fg-dim">
-            Risk shown is a heuristic proxy from liquidity, volume, age &amp; flow — Cortex
-            reputation scoring replaces it in a later phase.
+            Feed risk is a fast liquidity/volume/age proxy. Full Cortex scoring —
+            concentration, wash-trade &amp; reputation — is on each token page.
           </p>
         </aside>
 

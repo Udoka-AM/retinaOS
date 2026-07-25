@@ -17,7 +17,7 @@ const points = [
 
 export function WalletApp() {
   return (
-    <section className="relative flex items-center overflow-hidden py-24 lg:min-h-screen lg:py-0">
+    <section id="wallet" className="relative flex items-center overflow-hidden py-24 lg:min-h-screen lg:py-0">
       {/* ---------- background ---------- */}
       <div className="pointer-events-none absolute inset-0 bg-grid opacity-[0.3] [mask-image:radial-gradient(ellipse_70%_60%_at_65%_50%,#000,transparent_75%)]" />
       <div className="aurora-blob animate-drift-a right-[22%] top-[14%] h-[440px] w-[480px] bg-lime/12" />

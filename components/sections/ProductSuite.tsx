@@ -2,12 +2,16 @@ import { IconReticle, IconCortex, IconAperture, IconArrowUpRight } from "@/compo
 import { Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 
+const DOCS = "https://retinaos.mintlify.app";
+
 const products = [
   {
     name: "Retina Terminal",
     tagline: "See what matters.",
     accent: "lime",
     Icon: IconReticle,
+    href: "/terminal",
+    external: false,
     desc: "The market intelligence dashboard. Real-time token discovery, deep token and wallet pages, and an AI analyst you can just talk to.",
     features: [
       "Live discovery feed — no login",
@@ -21,6 +25,8 @@ const products = [
     tagline: "Intelligence scored.",
     accent: "cortex",
     Icon: IconCortex,
+    href: `${DOCS}/cortex/overview`,
+    external: true,
     desc: "The reputation engine, embedded everywhere. Behavioral classification and 0–100 trust scores for every wallet and token, inline.",
     features: [
       "Wallet reputation 0–100",
@@ -34,6 +40,8 @@ const products = [
     tagline: "Trade with confidence.",
     accent: "wallet",
     Icon: IconAperture,
+    href: "#wallet",
+    external: false,
     desc: "The non-custodial execution layer. Set plain-language policies; every trade is checked against them before it ever broadcasts.",
     features: [
       "WalletConnect, keys stay yours",
@@ -71,8 +79,10 @@ export function ProductSuite() {
           {products.map((p) => {
             const a = accentMap[p.accent];
             return (
-              <article
+              <a
                 key={p.name}
+                href={p.href}
+                {...(p.external ? { target: "_blank", rel: "noreferrer" } : {})}
                 className={cn("reveal tile group flex flex-col overflow-hidden rounded-3xl p-7", a.tile)}
               >
                 <div className="flex items-center justify-between">
@@ -104,7 +114,7 @@ export function ProductSuite() {
                     </li>
                   ))}
                 </ul>
-              </article>
+              </a>
             );
           })}
         </div>

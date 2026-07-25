@@ -1,4 +1,6 @@
-import type { Holder, TokenOnchain } from "./types";
+import { fmtUsd } from "../format";
+import { scoreWallet } from "./cortex";
+import type { Holder, Holding, TokenOnchain, WalletProfile, WalletTx } from "./types";
 
 /** Blockscout adapter for Robinhood Chain — free public API. Supplies the
  *  on-chain layer (holder counts, distribution, labeled entities) that DEX
@@ -9,6 +11,8 @@ const REVALIDATE = 60; // holders move slowly; cache generously
 
 export const explorerTokenUrl = (address: string) =>
   `https://robinhoodchain.blockscout.com/token/${address}`;
+export const explorerAddressUrl = (address: string) =>
+  `https://robinhoodchain.blockscout.com/address/${address}`;
 
 async function bsFetch(path: string): Promise<any> {
   const res = await fetch(`${BASE}${path}`, {
@@ -63,5 +67,125 @@ export async function getTokenOnchain(address: string): Promise<TokenOnchain> {
     topHolders,
     concentrationTop10,
     reputation: meta.reputation ?? null,
+  };
+}
+
+/* ---------- wallet profile ---------- */
+
+const validLogo = (u: unknown): string | null =>
+  typeof u === "string" && u.startsWith("http") && u !== "missing.png" ? u : null;
+
+function mapHoldings(items: any[]): Holding[] {
+  const holdings = items
+    .map((it): Holding => {
+      const t = it.token ?? {};
+      const decimals = t.decimals != null ? Number(t.decimals) : 18;
+      const balance = decimals > 0 ? num(it.value) / 10 ** decimals : num(it.value);
+      const priceUsd = t.exchange_rate != null && t.exchange_rate !== "" ? Number(t.exchange_rate) : null;
+      return {
+        address: t.address_hash ?? "",
+        symbol: t.symbol ?? "—",
+        name: t.name ?? "—",
+        logoUrl: validLogo(t.icon_url),
+        balance,
+        priceUsd,
+        valueUsd: priceUsd != null ? balance * priceUsd : null,
+      };
+    })
+    .filter((h) => h.balance > 0);
+
+  holdings.sort((a, b) => (b.valueUsd ?? -1) - (a.valueUsd ?? -1));
+  return holdings.slice(0, 30);
+}
+
+function mapTransfers(items: any[], self: string): WalletTx[] {
+  const me = self.toLowerCase();
+  return items.slice(0, 20).map((it): WalletTx => {
+    const from = (it.from?.hash ?? "").toLowerCase();
+    const to = (it.to?.hash ?? "").toLowerCase();
+    const direction = from === me && to === me ? "self" : from === me ? "out" : "in";
+    const t = it.token ?? {};
+    const dec = it.total?.decimals != null ? Number(it.total.decimals) : Number(t.decimals ?? 18);
+    const amount = it.total?.value != null ? num(it.total.value) / 10 ** dec : null;
+    return {
+      hash: it.transaction_hash ?? "",
+      ts: it.timestamp ? Math.floor(new Date(it.timestamp).getTime() / 1000) : 0,
+      direction,
+      counterparty: direction === "out" ? it.to?.hash ?? "" : it.from?.hash ?? "",
+      tokenSymbol: t.symbol ?? null,
+      amount,
+    };
+  });
+}
+
+export async function getWalletProfile(address: string): Promise<WalletProfile | null> {
+  const [info, counters, balances, transfers] = await Promise.allSettled([
+    bsFetch(`/addresses/${address}`),
+    bsFetch(`/addresses/${address}/counters`),
+    bsFetch(`/addresses/${address}/token-balances`),
+    bsFetch(`/addresses/${address}/token-transfers?type=ERC-20`),
+  ]);
+
+  if (info.status !== "fulfilled") return null;
+  const meta = info.value;
+
+  const nativePriceUsd =
+    meta.exchange_rate != null && meta.exchange_rate !== "" ? Number(meta.exchange_rate) : null;
+  const nativeBalance = num(meta.coin_balance) / 1e18;
+  const nativeValueUsd = nativePriceUsd != null ? nativeBalance * nativePriceUsd : null;
+
+  const holdings = balances.status === "fulfilled" ? mapHoldings(balances.value ?? []) : [];
+  const recent =
+    transfers.status === "fulfilled" ? mapTransfers(transfers.value?.items ?? [], address) : [];
+
+  const holdingsValue = holdings.reduce((s, h) => s + (h.valueUsd ?? 0), 0);
+  const portfolioValueUsd = holdingsValue + (nativeValueUsd ?? 0);
+
+  const c = counters.status === "fulfilled" ? counters.value : {};
+  const txCount = c.transactions_count != null ? Number(c.transactions_count) : null;
+  const transferCount = c.token_transfers_count != null ? Number(c.token_transfers_count) : null;
+
+  const label =
+    meta.metadata?.tags?.find((t: any) => t.tagType === "name")?.name ??
+    meta.name ??
+    (meta.is_contract ? "Contract" : null);
+
+  const cortex = scoreWallet({
+    portfolioValueUsd,
+    holdingsCount: holdings.length,
+    txCount,
+    transferCount,
+    isContract: Boolean(meta.is_contract),
+    reputation: meta.reputation ?? null,
+  });
+
+  const top = holdings.find((h) => h.valueUsd != null);
+  const summary =
+    `${address.slice(0, 6)}…${address.slice(-4)} holds ${fmtUsd(portfolioValueUsd)} across ` +
+    `${holdings.length} token${holdings.length === 1 ? "" : "s"}` +
+    `${txCount != null ? ` over ${txCount.toLocaleString()} transactions` : ""}` +
+    `${top ? `. Largest position: ${top.symbol} (${fmtUsd(top.valueUsd)})` : ""}. ` +
+    `Cortex reputation ${cortex.score}/100 (${cortex.grade})${
+      cortex.tags.length ? ` · ${cortex.tags.join(", ")}` : ""
+    }.`;
+
+  return {
+    address,
+    isContract: Boolean(meta.is_contract),
+    label,
+    nativeBalance,
+    nativeSymbol: "ETH",
+    nativePriceUsd,
+    nativeValueUsd,
+    portfolioValueUsd,
+    txCount,
+    transferCount,
+    holdings,
+    recent,
+    reputation: meta.reputation ?? null,
+    cortex,
+    explorerUrl: explorerAddressUrl(address),
+    summary,
+    fetchedAt: new Date().toISOString(),
   };
 }

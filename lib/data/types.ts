@@ -15,6 +15,34 @@ export interface RiskAssessment {
   heuristic: true;
 }
 
+/* ---------- Cortex scoring ---------- */
+
+export type CortexGrade = "A" | "B" | "C" | "D" | "F";
+
+export interface CortexSub {
+  label: string;
+  score: number; // 0–100
+  hint: string;
+}
+
+/** Token risk — higher = riskier (matches the docs' 0–100 token risk). */
+export interface CortexTokenScore {
+  score: number;
+  grade: CortexGrade;
+  level: RiskLevel;
+  subs: CortexSub[]; // concentration · liquidity · trading
+  flags: string[];
+}
+
+/** Wallet reputation — higher = better. */
+export interface CortexWalletScore {
+  score: number;
+  grade: CortexGrade;
+  tags: string[]; // behavioral classification
+  subs: CortexSub[]; // activity · diversification · standing
+  flags: string[];
+}
+
 export interface DiscoveryToken {
   id: string;
   symbol: string;
@@ -84,6 +112,47 @@ export interface TokenOnchain {
   reputation: string | null;
 }
 
+/* ---------- wallet profile ---------- */
+
+export interface Holding {
+  address: string;
+  symbol: string;
+  name: string;
+  logoUrl: string | null;
+  balance: number;
+  priceUsd: number | null;
+  valueUsd: number | null;
+}
+
+export interface WalletTx {
+  hash: string;
+  ts: number; // unix seconds
+  direction: "in" | "out" | "self";
+  counterparty: string;
+  tokenSymbol: string | null;
+  amount: number | null;
+}
+
+export interface WalletProfile {
+  address: string;
+  isContract: boolean;
+  label: string | null;
+  nativeBalance: number;
+  nativeSymbol: string;
+  nativePriceUsd: number | null;
+  nativeValueUsd: number | null;
+  portfolioValueUsd: number | null;
+  txCount: number | null;
+  transferCount: number | null;
+  holdings: Holding[];
+  recent: WalletTx[];
+  reputation: string | null;
+  cortex: CortexWalletScore;
+  explorerUrl: string;
+  summary: string;
+  fetchedAt: string;
+}
+
 export interface TokenDetail {
   address: string;
   poolAddress: string;
@@ -101,7 +170,7 @@ export interface TokenDetail {
   createdAt: string | null;
   ageMs: number | null;
   quoteSymbol: string;
-  risk: RiskAssessment;
+  cortex: CortexTokenScore;
   onchain: TokenOnchain;
   chart: OhlcvPoint[];
   trades: Trade[];

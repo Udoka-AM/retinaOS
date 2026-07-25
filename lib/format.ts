@@ -22,6 +22,17 @@ export function fmtPrice(n: number | null): string {
   return "$" + n.toPrecision(3);
 }
 
+export function fmtNum(n: number | null): string {
+  if (n == null || Number.isNaN(n)) return "—";
+  const abs = Math.abs(n);
+  if (abs >= 1e9) return (n / 1e9).toFixed(2) + "B";
+  if (abs >= 1e6) return (n / 1e6).toFixed(2) + "M";
+  if (abs >= 1e3) return (n / 1e3).toFixed(1) + "K";
+  if (abs >= 1) return n.toLocaleString("en-US", { maximumFractionDigits: 2 });
+  if (abs > 0) return n.toPrecision(3);
+  return "0";
+}
+
 export function fmtPct(n: number): string {
   if (n == null || Number.isNaN(n)) return "—";
   const digits = n <= -100 || n >= 1000 ? 0 : 1;

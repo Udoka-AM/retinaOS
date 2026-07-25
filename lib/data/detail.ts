@@ -1,6 +1,6 @@
 import { getOhlcv, getTokenMarket, getTrades } from "./geckoterminal";
 import { explorerTokenUrl, getTokenOnchain } from "./blockscout";
-import { assessRisk } from "./risk";
+import { scoreToken } from "./cortex";
 import { fmtAge, fmtPct, fmtUsd } from "../format";
 import type { TokenDetail, TokenOnchain } from "./types";
 
@@ -24,9 +24,12 @@ function buildSummary(d: TokenDetail): string {
       ? `, and the top 10 wallets hold ${d.onchain.concentrationTop10.toFixed(0)}% of supply`
       : "";
   const holders = d.onchain.holders != null ? ` across ${d.onchain.holders.toLocaleString()} holders` : "";
-  const riskLine = d.risk.flags.length
-    ? `Heuristic risk is ${d.risk.level} — ${d.risk.flags.slice(0, 2).join(", ").toLowerCase()}.`
-    : `Heuristic risk is ${d.risk.level}.`;
+  const riskLine = d.cortex.flags.length
+    ? `Cortex grades it ${d.cortex.grade} (${d.cortex.level} risk) — ${d.cortex.flags
+        .slice(0, 2)
+        .join(", ")
+        .toLowerCase()}.`
+    : `Cortex grades it ${d.cortex.grade} (${d.cortex.level} risk).`;
 
   return (
     `${d.symbol} trades on ${d.dex} with ${fmtUsd(d.liquidityUsd)} liquidity and ` +
@@ -53,18 +56,20 @@ export async function getTokenDetail(address: string): Promise<TokenDetail | nul
     getTokenOnchain(address).catch(() => EMPTY_ONCHAIN),
   ]);
 
-  const risk = assessRisk({
+  const cortex = scoreToken({
     liquidityUsd: market.liquidityUsd,
     volume24hUsd: market.volume24hUsd,
     priceChange24h: market.priceChange.h24,
     ageMs: market.ageMs,
     buys: market.txns24h.buys,
     sells: market.txns24h.sells,
+    concentrationTop10: onchain.concentrationTop10,
+    holders: onchain.holders,
   });
 
   const detail: TokenDetail = {
     ...market,
-    risk,
+    cortex,
     onchain,
     chart,
     trades,

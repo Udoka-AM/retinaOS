@@ -1,8 +1,7 @@
+import Link from "next/link";
 import type { TokenOnchain } from "@/lib/data";
 import { shortAddr } from "@/lib/format";
 import { cn } from "@/lib/utils";
-
-const addrUrl = (a: string) => `https://robinhoodchain.blockscout.com/address/${a}`;
 
 export function HolderPanel({ onchain, symbol }: { onchain: TokenOnchain; symbol: string }) {
   const conc = onchain.concentrationTop10;
@@ -51,14 +50,12 @@ export function HolderPanel({ onchain, symbol }: { onchain: TokenOnchain; symbol
           onchain.topHolders.slice(0, 8).map((h, i) => (
             <div key={h.address || i} className="flex items-center gap-2.5 text-xs">
               <span className="tabular w-4 text-fg-dim">{i + 1}</span>
-              <a
-                href={addrUrl(h.address)}
-                target="_blank"
-                rel="noreferrer"
+              <Link
+                href={`/terminal/wallet/${h.address}`}
                 className="tabular w-24 shrink-0 truncate text-fg-muted transition-colors hover:text-lime"
               >
                 {shortAddr(h.address)}
-              </a>
+              </Link>
               {h.label && (
                 <span className="shrink-0 rounded bg-panel px-1.5 py-0.5 text-[9px] uppercase tracking-wide text-fg-dim">
                   {h.label}
