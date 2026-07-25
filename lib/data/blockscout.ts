@@ -118,6 +118,33 @@ function mapTransfers(items: any[], self: string): WalletTx[] {
   });
 }
 
+/** Cheap activity probe for wallet alerts — counters only, no holdings. */
+export async function getWalletActivity(
+  address: string
+): Promise<{ address: string; txCount: number | null; transferCount: number | null; label: string | null } | null> {
+  try {
+    const [counters, info] = await Promise.allSettled([
+      bsFetch(`/addresses/${address}/counters`),
+      bsFetch(`/addresses/${address}`),
+    ]);
+    if (counters.status !== "fulfilled" && info.status !== "fulfilled") return null;
+    const c = counters.status === "fulfilled" ? counters.value : {};
+    const meta = info.status === "fulfilled" ? info.value : {};
+    const label =
+      meta.metadata?.tags?.find((t: any) => t.tagType === "name")?.name ??
+      meta.name ??
+      (meta.is_contract ? "Contract" : null);
+    return {
+      address,
+      txCount: c.transactions_count != null ? Number(c.transactions_count) : null,
+      transferCount: c.token_transfers_count != null ? Number(c.token_transfers_count) : null,
+      label,
+    };
+  } catch {
+    return null;
+  }
+}
+
 export async function getWalletProfile(address: string): Promise<WalletProfile | null> {
   const [info, counters, balances, transfers] = await Promise.allSettled([
     bsFetch(`/addresses/${address}`),

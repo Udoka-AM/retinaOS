@@ -1,6 +1,6 @@
 import { getDiscoveryFeed, getOhlcv, getTrades } from "./geckoterminal";
 import { getTokenDetail } from "./detail";
-import { getWalletProfile } from "./blockscout";
+import { getWalletActivity, getWalletProfile } from "./blockscout";
 import type {
   DiscoveryFeedResult,
   FeedView,
@@ -20,6 +20,9 @@ export interface TerminalDataProvider {
   getOhlcv(pool: string, tf?: OhlcvTimeframe): Promise<OhlcvPoint[]>;
   getTrades(pool: string, limit?: number): Promise<Trade[]>;
   getWalletProfile(address: string): Promise<WalletProfile | null>;
+  getWalletActivity(
+    address: string
+  ): Promise<{ address: string; txCount: number | null; transferCount: number | null; label: string | null } | null>;
 }
 
 export const provider: TerminalDataProvider = {
@@ -28,6 +31,7 @@ export const provider: TerminalDataProvider = {
   getOhlcv,
   getTrades,
   getWalletProfile,
+  getWalletActivity,
 };
 
 export * from "./types";

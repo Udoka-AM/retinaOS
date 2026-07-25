@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { TerminalHeader } from "@/components/terminal/TerminalHeader";
 import { AnalystPalette } from "@/components/terminal/AnalystPalette";
+import { AlertsEngine } from "@/components/terminal/alerts/AlertsEngine";
 
 export const metadata: Metadata = {
   title: "Retina Terminal — Discovery",
@@ -14,6 +15,7 @@ export default function TerminalLayout({ children }: { children: React.ReactNode
       <TerminalHeader />
       <main>{children}</main>
       <AnalystPalette />
+      <AlertsEngine />
     </div>
   );
 }

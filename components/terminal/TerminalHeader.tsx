@@ -35,7 +35,12 @@ const NAV: NavItem[] = [
     Icon: IconAperture,
     isActive: (p) => p.startsWith("/terminal/wallet"),
   },
-  { label: "Alerts", Icon: IconRadar, soon: true },
+  {
+    label: "Alerts",
+    href: "/terminal/alerts",
+    Icon: IconRadar,
+    isActive: (p) => p.startsWith("/terminal/alerts"),
+  },
 ];
 
 export function TerminalHeader() {
