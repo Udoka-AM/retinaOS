@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { RetinaMark } from "@/components/brand/RetinaMark";
 import { IconReticle, IconCortex, IconAperture, IconRadar } from "@/components/brand/Icons";
 import { ConnectWallet } from "@/components/terminal/ConnectWallet";
+import { AnalystTrigger } from "@/components/terminal/AnalystPalette";
 import { cn } from "@/lib/utils";
 
 type NavItem = {
@@ -84,9 +85,10 @@ export function TerminalHeader() {
         </div>
 
         <div className="flex items-center gap-3">
-          <span className="hidden items-center gap-1.5 rounded-full border border-safe/30 bg-safe/10 px-2.5 py-1 text-[11px] font-semibold text-safe lg:flex">
+          <span className="hidden items-center gap-1.5 rounded-full border border-safe/30 bg-safe/10 px-2.5 py-1 text-[11px] font-semibold text-safe xl:flex">
             <span className="size-1.5 rounded-full bg-safe animate-live" /> LIVE · RH Chain
           </span>
+          <AnalystTrigger className="hidden sm:flex" />
           <ConnectWallet />
           <Link href="/" className="hidden text-xs text-fg-dim transition-colors hover:text-fg sm:block">
             ← retinaos
