@@ -10,24 +10,22 @@ import {
   describeFilter,
   shortWallet,
   type AlertRule,
-  type TriggeredAlert,
 } from "@/lib/alerts";
 
 const TICK_MS = 15_000;
 
-function notify(t: TriggeredAlert) {
-  pushTriggered(t);
-  if (typeof Notification !== "undefined" && Notification.permission === "granted") {
-    try {
-      const n = new Notification(t.title, { body: t.detail, tag: t.id });
-      n.onclick = () => {
-        window.focus();
-        window.location.href = t.href;
-        n.close();
-      };
-    } catch {
-      /* ignore */
-    }
+/** Fire one OS notification (batched by caller); always safe to no-op. */
+function osNotify(title: string, body: string, tag: string, href: string) {
+  if (typeof Notification === "undefined" || Notification.permission !== "granted") return;
+  try {
+    const n = new Notification(title, { body, tag });
+    n.onclick = () => {
+      window.focus();
+      window.location.href = href;
+      n.close();
+    };
+  } catch {
+    /* ignore */
   }
 }
 
@@ -67,20 +65,36 @@ export function AlertsEngine() {
             const feed = feeds.get(rule.filter.view);
             if (!feed) continue;
             const seen = new Set(next[idx].seen);
+            const hits: { symbol: string; href: string }[] = [];
             for (const t of feed.tokens) {
               if (!tokenMatches(t, rule.filter)) continue;
               const key = t.address || t.poolAddress;
               if (seen.has(key)) continue;
               seen.add(key);
-              notify({
+              const href = `/terminal/token/${key}`;
+              // log every match in-app…
+              pushTriggered({
                 id: `${rule.id}-${key}-${Date.now()}`,
                 ruleId: rule.id,
                 at: Date.now(),
                 kind: "token",
                 title: `${t.symbol} matched your alert`,
                 detail: `${rule.label} — ${describeFilter(rule.filter)}`,
-                href: `/terminal/token/${key}`,
+                href,
               });
+              hits.push({ symbol: t.symbol, href });
+            }
+            // …but fire a single batched OS notification per rule per tick
+            if (hits.length === 1) {
+              osNotify(`${hits[0].symbol} matched your alert`, describeFilter(rule.filter), rule.id, hits[0].href);
+            } else if (hits.length > 1) {
+              const names = hits.slice(0, 4).map((h) => h.symbol).join(", ");
+              osNotify(
+                `${hits.length} tokens matched your alert`,
+                names + (hits.length > 4 ? ` +${hits.length - 4} more` : ""),
+                rule.id,
+                "/terminal/alerts"
+              );
             }
             next[idx] = { ...next[idx], seen: [...seen].slice(-200) };
             mutated = true;
@@ -99,15 +113,19 @@ export function AlertsEngine() {
               if (base == null) {
                 next[idx] = { ...next[idx], baseline: count };
               } else if (count > base) {
-                notify({
+                const href = `/terminal/wallet/${rule.walletAddress}`;
+                const title = `New activity: ${shortWallet(rule.walletAddress)}`;
+                const detail = `${count - base} new transfer(s) since last check.`;
+                pushTriggered({
                   id: `${rule.id}-${count}-${Date.now()}`,
                   ruleId: rule.id,
                   at: Date.now(),
                   kind: "wallet",
-                  title: `New activity: ${shortWallet(rule.walletAddress)}`,
-                  detail: `${count - base} new transfer(s) since last check.`,
-                  href: `/terminal/wallet/${rule.walletAddress}`,
+                  title,
+                  detail,
+                  href,
                 });
+                osNotify(title, detail, rule.id, href);
                 next[idx] = { ...next[idx], baseline: count };
               }
               mutated = true;

@@ -34,6 +34,7 @@ export default function AlertsPage() {
   const [log, setLog] = useState<TriggeredAlert[]>([]);
   const [perm, setPerm] = useState<NotificationPermission | "unsupported">("default");
   const [tab, setTab] = useState<"token" | "wallet">("token");
+  const [account, setAccount] = useState<string | null>(null);
 
   useEffect(() => {
     const sync = () => {
@@ -50,7 +51,33 @@ export default function AlertsPage() {
     };
   }, []);
 
+  // connected wallet (from the header's injected connect)
+  useEffect(() => {
+    const eth = (window as any).ethereum;
+    if (!eth) return;
+    eth.request({ method: "eth_accounts" }).then((a: string[]) => setAccount(a?.[0] ?? null)).catch(() => {});
+    const onAccounts = (a: string[]) => setAccount(a?.[0] ?? null);
+    eth.on?.("accountsChanged", onAccounts);
+    return () => eth.removeListener?.("accountsChanged", onAccounts);
+  }, []);
+
   const atLimit = rules.length >= FREE_TIER_LIMIT;
+  const watchingSelf =
+    !!account && rules.some((r) => r.kind === "wallet" && r.walletAddress?.toLowerCase() === account.toLowerCase());
+
+  function watchMyWallet() {
+    if (!account || atLimit || watchingSelf) return;
+    addRule({
+      id: crypto.randomUUID(),
+      kind: "wallet",
+      label: "My wallet",
+      createdAt: Date.now(),
+      enabled: true,
+      walletAddress: account,
+      seen: [],
+      baseline: null,
+    });
+  }
 
   async function requestPerm() {
     if (typeof Notification === "undefined") return;
@@ -73,6 +100,14 @@ export default function AlertsPage() {
           <span className="tabular text-xs text-fg-dim">
             {rules.length}/{FREE_TIER_LIMIT} alerts · Free tier
           </span>
+          {account && !watchingSelf && !atLimit && (
+            <button
+              onClick={watchMyWallet}
+              className="flex items-center gap-1.5 rounded-full border border-lime/30 bg-lime/10 px-3 py-1.5 text-xs font-semibold text-lime transition-colors hover:bg-lime/15"
+            >
+              <IconAperture size={13} /> Watch my wallet
+            </button>
+          )}
           {perm !== "granted" && perm !== "unsupported" && (
             <button
               onClick={requestPerm}
@@ -92,7 +127,7 @@ export default function AlertsPage() {
       <div className="mt-6 grid gap-5 lg:grid-cols-[1fr_360px]">
         {/* create + list */}
         <div className="space-y-5">
-          <CreateForm tab={tab} setTab={setTab} atLimit={atLimit} />
+          <CreateForm tab={tab} setTab={setTab} atLimit={atLimit} connectedWallet={account} />
 
           <div className="rounded-2xl border border-hairline bg-panel/30">
             <div className="border-b border-hairline px-4 py-3 text-sm font-semibold">Active alerts</div>
@@ -183,10 +218,12 @@ function CreateForm({
   tab,
   setTab,
   atLimit,
+  connectedWallet,
 }: {
   tab: "token" | "wallet";
   setTab: (t: "token" | "wallet") => void;
   atLimit: boolean;
+  connectedWallet?: string | null;
 }) {
   const [view, setView] = useState<FeedView>("new");
   const [minLiq, setMinLiq] = useState(0);
@@ -304,6 +341,14 @@ function CreateForm({
             placeholder="0x wallet address to watch…"
             className="tabular w-full rounded-xl border border-hairline bg-panel/50 px-3 py-2 text-sm text-fg outline-none placeholder:text-fg-dim focus:border-lime/50"
           />
+          {connectedWallet && addr.trim().toLowerCase() !== connectedWallet.toLowerCase() && (
+            <button
+              onClick={() => setAddr(connectedWallet)}
+              className="tabular text-xs text-lime transition-opacity hover:opacity-80"
+            >
+              Use my connected wallet ({connectedWallet.slice(0, 6)}…{connectedWallet.slice(-4)})
+            </button>
+          )}
           <button
             onClick={createWallet}
             disabled={atLimit || !/^0x[0-9a-fA-F]{40}$/.test(addr.trim())}
