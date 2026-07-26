@@ -16,9 +16,12 @@ import type {
 
 const BASE = "https://api.geckoterminal.com/api/v2";
 const NETWORK = "robinhood"; // Robinhood Chain (chain id 4663)
-const REVALIDATE = 5; // seconds between upstream refreshes per page
-const PAGES = 2; // pools pages to merge (20 each) → ~40 tokens
-// 2 pages / 5s = 24 upstream req/min — inside the free-tier ceiling.
+const REVALIDATE = 20; // seconds between upstream refreshes per page
+const PAGES = 1; // pools page per view (20 tokens); the board shows 3 views at once
+// 3 views x 1 page / 20s = 9 upstream req/min. The board is only part of the
+// budget — token pages, wallet holding charts and search all draw from the same
+// ~30/min free tier, so the feed deliberately leaves most of it spare. Trading
+// feed latency for detail-page reliability; the indexer removes the tradeoff.
 
 interface GTPool {
   id: string;
@@ -107,6 +110,7 @@ function mapPool(pool: GTPool, tokens: Map<string, GTIncluded>): DiscoveryToken 
     createdAt,
     ageMs,
     quoteSymbol: quoteName.trim(),
+    quotePriceUsd: numOrNull(a.quote_token_price_usd),
     risk: assessRisk({
       liquidityUsd,
       volume24hUsd,
@@ -243,9 +247,12 @@ export async function getTokenMarket(address: string): Promise<TokenMarket | nul
 }
 
 const OHLCV_PATH: Record<OhlcvTimeframe, (pool: string) => string> = {
+  m1: (p) => `/networks/${NETWORK}/pools/${p}/ohlcv/minute?aggregate=1&limit=300&currency=usd`,
   m5: (p) => `/networks/${NETWORK}/pools/${p}/ohlcv/minute?aggregate=5&limit=288&currency=usd`,
+  m15: (p) => `/networks/${NETWORK}/pools/${p}/ohlcv/minute?aggregate=15&limit=192&currency=usd`,
   h1: (p) => `/networks/${NETWORK}/pools/${p}/ohlcv/hour?aggregate=1&limit=168&currency=usd`,
-  d1: (p) => `/networks/${NETWORK}/pools/${p}/ohlcv/day?aggregate=1&limit=90&currency=usd`,
+  h4: (p) => `/networks/${NETWORK}/pools/${p}/ohlcv/hour?aggregate=4&limit=180&currency=usd`,
+  d1: (p) => `/networks/${NETWORK}/pools/${p}/ohlcv/day?aggregate=1&limit=180&currency=usd`,
 };
 
 export async function getOhlcv(

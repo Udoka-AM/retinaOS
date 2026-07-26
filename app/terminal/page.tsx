@@ -1,30 +1,29 @@
 import { provider, type DiscoveryFeedResult, type FeedView } from "@/lib/data";
-import { DiscoveryFeed } from "@/components/terminal/DiscoveryFeed";
+import { DiscoveryBoard } from "@/components/terminal/DiscoveryBoard";
 
-const VIEWS: FeedView[] = ["trending", "new", "top"];
+const empty = (view: FeedView): DiscoveryFeedResult => ({
+  tokens: [],
+  view,
+  fetchedAt: new Date().toISOString(),
+  network: "robinhood",
+  source: "geckoterminal",
+});
 
-export default async function TerminalPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ view?: string }>;
-}) {
-  const sp = await searchParams;
-  const view: FeedView = VIEWS.includes(sp.view as FeedView) ? (sp.view as FeedView) : "trending";
+export default async function TerminalPage() {
+  const [neu, trending, top] = await Promise.all([
+    provider.getDiscoveryFeed("new").catch(() => null),
+    provider.getDiscoveryFeed("trending").catch(() => null),
+    provider.getDiscoveryFeed("top").catch(() => null),
+  ]);
 
-  let initial: DiscoveryFeedResult;
-  let error: string | undefined;
-  try {
-    initial = await provider.getDiscoveryFeed(view);
-  } catch (err) {
-    error = err instanceof Error ? err.message : "feed unavailable";
-    initial = {
-      tokens: [],
-      view,
-      fetchedAt: new Date().toISOString(),
-      network: "robinhood",
-      source: "geckoterminal",
-    };
-  }
+  const allFailed = !neu && !trending && !top;
 
-  return <DiscoveryFeed initial={initial} view={view} error={error} />;
+  return (
+    <DiscoveryBoard
+      neu={neu ?? empty("new")}
+      trending={trending ?? empty("trending")}
+      top={top ?? empty("top")}
+      error={allFailed ? "data source unavailable" : undefined}
+    />
+  );
 }

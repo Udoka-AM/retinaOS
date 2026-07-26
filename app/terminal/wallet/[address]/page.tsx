@@ -6,6 +6,7 @@ import { IconArrowUpRight, IconSpark, IconAperture } from "@/components/brand/Ic
 import { HoldingsTable } from "@/components/terminal/wallet/HoldingsTable";
 import { WalletActivity } from "@/components/terminal/wallet/WalletActivity";
 import { CortexWalletPanel } from "@/components/terminal/CortexPanels";
+import { WalletHoldingsChart } from "@/components/terminal/wallet/WalletHoldingsChart";
 
 export default async function WalletPage({
   params,
@@ -36,7 +37,7 @@ export default async function WalletPage({
   }
 
   return (
-    <div className="mx-auto max-w-[1200px] px-4 py-6 sm:px-6">
+    <div className="w-full px-3 py-3">
       <Link
         href="/terminal"
         className="inline-flex items-center gap-1 text-sm text-fg-dim transition-colors hover:text-fg"
@@ -45,7 +46,7 @@ export default async function WalletPage({
       </Link>
 
       {/* header */}
-      <div className="mt-4 flex flex-wrap items-start justify-between gap-4">
+      <div className="mt-3 flex flex-wrap items-start justify-between gap-4">
         <div className="flex items-center gap-4">
           <span className="flex size-14 items-center justify-center rounded-2xl bg-wallet/10 text-wallet ring-1 ring-wallet/20">
             <IconAperture size={26} />
@@ -82,7 +83,7 @@ export default async function WalletPage({
       </div>
 
       {/* grounded summary */}
-      <div className="mt-6 flex items-start gap-3 rounded-2xl border border-hairline bg-panel/30 p-4">
+      <div className="mt-3 flex items-start gap-3 rounded-2xl border border-hairline bg-panel/30 p-4">
         <span className="mt-0.5 flex size-7 shrink-0 items-center justify-center rounded-lg bg-cortex/10 text-cortex">
           <IconSpark size={16} />
         </span>
@@ -96,7 +97,7 @@ export default async function WalletPage({
       </div>
 
       {/* stats */}
-      <div className="mt-6 grid grid-cols-2 gap-3 md:grid-cols-4">
+      <div className="mt-2 grid grid-cols-2 gap-2 md:grid-cols-4">
         <Stat
           label={`${w.nativeSymbol} balance`}
           value={fmtNum(w.nativeBalance)}
@@ -114,9 +115,12 @@ export default async function WalletPage({
       </div>
 
       {/* main grid */}
-      <div className="mt-6 grid gap-4 lg:grid-cols-[1fr_380px]">
-        <HoldingsTable holdings={w.holdings} portfolioValueUsd={w.portfolioValueUsd} />
-        <div className="space-y-4">
+      <div className="mt-2 grid gap-2 lg:grid-cols-[1fr_380px]">
+        <div className="min-w-0 space-y-2">
+          <WalletHoldingsChart holdings={w.holdings} />
+          <HoldingsTable holdings={w.holdings} portfolioValueUsd={w.portfolioValueUsd} />
+        </div>
+        <div className="space-y-2">
           <CortexWalletPanel cortex={w.cortex} />
           <WalletActivity recent={w.recent} />
         </div>

@@ -61,6 +61,9 @@ export interface DiscoveryToken {
   createdAt: string | null; // ISO
   ageMs: number | null;
   quoteSymbol: string;
+  /** Quote-token USD price (e.g. WETH). Already present in every feed
+   *  response, so the header ticker costs no extra upstream calls. */
+  quotePriceUsd: number | null;
   risk: RiskAssessment;
 }
 
@@ -74,7 +77,7 @@ export interface DiscoveryFeedResult {
 
 /* ---------- token detail ---------- */
 
-export type OhlcvTimeframe = "m5" | "h1" | "d1";
+export type OhlcvTimeframe = "m1" | "m5" | "m15" | "h1" | "h4" | "d1";
 
 export interface OhlcvPoint {
   t: number; // unix seconds

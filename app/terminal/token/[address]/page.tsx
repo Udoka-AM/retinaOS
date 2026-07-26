@@ -41,7 +41,7 @@ export default async function TokenPage({
   const initials = d.symbol.replace(/[^a-zA-Z0-9]/g, "").slice(0, 3).toUpperCase();
 
   return (
-    <div className="mx-auto max-w-[1200px] px-4 py-6 sm:px-6">
+    <div className="w-full px-3 py-3">
       <Link
         href="/terminal"
         className="inline-flex items-center gap-1 text-sm text-fg-dim transition-colors hover:text-fg"
@@ -50,7 +50,7 @@ export default async function TokenPage({
       </Link>
 
       {/* header */}
-      <div className="mt-4 flex flex-wrap items-start justify-between gap-4">
+      <div className="mt-3 flex flex-wrap items-start justify-between gap-4">
         <div className="flex items-center gap-4">
           <span className="flex size-14 items-center justify-center overflow-hidden rounded-2xl bg-panel-2 text-sm font-bold text-lime ring-1 ring-hairline">
             {d.logoUrl ? (
@@ -92,7 +92,7 @@ export default async function TokenPage({
       </div>
 
       {/* grounded summary */}
-      <div className="mt-6 flex items-start gap-3 rounded-2xl border border-hairline bg-panel/30 p-4">
+      <div className="mt-3 flex items-start gap-3 rounded-2xl border border-hairline bg-panel/30 p-4">
         <span className="mt-0.5 flex size-7 shrink-0 items-center justify-center rounded-lg bg-cortex/10 text-cortex">
           <IconSpark size={16} />
         </span>
@@ -105,7 +105,7 @@ export default async function TokenPage({
       </div>
 
       {/* stats */}
-      <div className="mt-6 grid grid-cols-2 gap-3 md:grid-cols-5">
+      <div className="mt-2 grid grid-cols-2 gap-2 md:grid-cols-5">
         <Stat label="Market cap" value={fmtUsd(d.marketCapUsd)} />
         <Stat label="Liquidity" value={fmtUsd(d.liquidityUsd)} />
         <Stat label="24h volume" value={fmtUsd(d.volume24hUsd)} />
@@ -118,12 +118,12 @@ export default async function TokenPage({
       </div>
 
       {/* main grid */}
-      <div className="mt-6 grid gap-4 lg:grid-cols-[1fr_360px]">
-        <div className="min-w-0 space-y-4">
+      <div className="mt-2 grid gap-2 lg:grid-cols-[1fr_380px]">
+        <div className="min-w-0 space-y-2">
           <PriceChart pool={d.poolAddress} initial={d.chart} symbol={d.symbol} />
           <TradesFeed pool={d.poolAddress} initial={d.trades} />
         </div>
-        <div className="space-y-4">
+        <div className="space-y-2">
           <CortexTokenPanel cortex={d.cortex} />
           <HolderPanel onchain={d.onchain} symbol={d.symbol} />
         </div>

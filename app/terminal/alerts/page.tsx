@@ -86,7 +86,7 @@ export default function AlertsPage() {
   }
 
   return (
-    <div className="mx-auto max-w-[1100px] px-4 py-6 sm:px-6">
+    <div className="w-full px-3 py-3">
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <h1 className="flex items-center gap-2 text-2xl font-bold tracking-tight">
@@ -124,9 +124,9 @@ export default function AlertsPage() {
         </div>
       </div>
 
-      <div className="mt-6 grid gap-5 lg:grid-cols-[1fr_360px]">
+      <div className="mt-3 grid gap-2 lg:grid-cols-[1fr_380px]">
         {/* create + list */}
-        <div className="space-y-5">
+        <div className="space-y-2">
           <CreateForm tab={tab} setTab={setTab} atLimit={atLimit} connectedWallet={account} />
 
           <div className="rounded-2xl border border-hairline bg-panel/30">

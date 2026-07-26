@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { provider, type OhlcvTimeframe } from "@/lib/data";
 
-const TFS: OhlcvTimeframe[] = ["m5", "h1", "d1"];
+const TFS: OhlcvTimeframe[] = ["m1", "m5", "m15", "h1", "h4", "d1"];
 
 export async function GET(req: NextRequest) {
   const pool = req.nextUrl.searchParams.get("pool");

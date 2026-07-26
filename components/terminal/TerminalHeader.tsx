@@ -6,6 +6,7 @@ import { RetinaMark } from "@/components/brand/RetinaMark";
 import { IconReticle, IconCortex, IconAperture, IconRadar } from "@/components/brand/Icons";
 import { ConnectWallet } from "@/components/terminal/ConnectWallet";
 import { AnalystTrigger } from "@/components/terminal/AnalystPalette";
+import { PriceTicker } from "@/components/terminal/PriceTicker";
 import { cn } from "@/lib/utils";
 
 type NavItem = {
@@ -48,7 +49,7 @@ export function TerminalHeader() {
 
   return (
     <header className="sticky top-0 z-40 border-b border-hairline bg-ink/80 backdrop-blur-xl">
-      <div className="mx-auto flex h-14 max-w-[1400px] items-center justify-between gap-4 px-4 sm:px-6">
+      <div className="flex h-14 w-full items-center justify-between gap-4 px-3">
         <div className="flex items-center gap-6">
           <Link href="/" className="flex items-center gap-2">
             <RetinaMark className="size-7 text-lime" />
@@ -89,8 +90,9 @@ export function TerminalHeader() {
           </nav>
         </div>
 
-        <div className="flex items-center gap-3">
-          <span className="hidden items-center gap-1.5 rounded-full border border-safe/30 bg-safe/10 px-2.5 py-1 text-[11px] font-semibold text-safe xl:flex">
+        <div className="flex items-center gap-2">
+          <PriceTicker />
+          <span className="hidden items-center gap-1.5 rounded-full border border-safe/30 bg-safe/10 px-2.5 py-1 text-[11px] font-semibold text-safe 2xl:flex">
             <span className="size-1.5 rounded-full bg-safe animate-live" /> LIVE · RH Chain
           </span>
           <AnalystTrigger className="hidden sm:flex" />
