@@ -103,10 +103,21 @@ async function runTool(name: string, input: any, cites: Set<string>): Promise<st
     if (name === "get_token") {
       let address = String(input?.addressOrSymbol ?? "").trim();
       if (!isAddress(address)) {
-        const feed = await provider.getDiscoveryFeed("top");
-        const match = feed.tokens.find((t) => t.symbol.toLowerCase() === address.toLowerCase());
+        // search every view — a symbol often isn't in the top-volume list
+        const sym = address.toLowerCase();
+        const feeds = await Promise.all(
+          (["top", "trending", "new"] as FeedView[]).map((v) =>
+            provider.getDiscoveryFeed(v).catch(() => null)
+          )
+        );
+        const all = feeds.flatMap((f) => f?.tokens ?? []);
+        const match =
+          all.find((t) => t.symbol.toLowerCase() === sym) ??
+          all.find((t) => t.symbol.toLowerCase().includes(sym));
         if (!match)
-          return JSON.stringify({ error: `No token matched "${address}". Call search_tokens to find its address.` });
+          return JSON.stringify({
+            error: `No token matched "${address}" in the live feeds. Call search_tokens to list what is currently tradable, then retry with a contract address.`,
+          });
         address = match.address;
       }
       const d = await provider.getTokenDetail(address);
@@ -211,7 +222,20 @@ async function runAnthropic(model: string, apiKey: string, question: string, cit
     }
     messages.push({ role: "user", content: results });
   }
-  return null;
+
+  // Budget exhausted — ask once more with tools removed so the model must
+  // answer from what it already gathered instead of looping forever.
+  const final = await client.messages.create({
+    model,
+    max_tokens: 1500,
+    system: SYSTEM + "\n\nYou are out of tool calls. Answer now using only the data already gathered. If it is insufficient, say exactly what is missing.",
+    messages,
+  } as any);
+  return final.content
+    .filter((b: any) => b.type === "text")
+    .map((b: any) => b.text)
+    .join("\n")
+    .trim();
 }
 
 /* ---------- OpenAI-compatible path (Gemini / Groq) ---------- */
@@ -263,7 +287,19 @@ async function runOpenAICompatible(
       });
     }
   }
-  return null;
+
+  // Budget exhausted — force a text answer with tools removed.
+  messages.push({
+    role: "user",
+    content:
+      "You are out of tool calls. Answer now using only the data already gathered. If it is insufficient, say exactly what is missing.",
+  });
+  const final = await client.chat.completions.create({
+    model,
+    max_tokens: 1500,
+    messages,
+  });
+  return (final.choices[0]?.message?.content ?? "").trim();
 }
 
 /* ---------- route ---------- */
@@ -306,17 +342,25 @@ export async function POST(req: NextRequest) {
       provider: cfg.label,
     });
   } catch (err) {
-    const raw = err instanceof Error ? err.message : "analyst error";
-    // surface actionable causes without leaking provider internals
-    const message = /model/i.test(raw) && /not found|does not exist|404/i.test(raw)
-      ? `The configured model "${cfg.model}" isn't available on ${cfg.label}. Set ${
-          cfg.id === "gemini" ? "GEMINI_MODEL" : cfg.id === "groq" ? "GROQ_MODEL" : "ANTHROPIC_MODEL"
-        } to a valid model id.`
-      : /429|rate/i.test(raw)
-      ? `${cfg.label}'s free tier is rate-limited right now — try again in a moment.`
-      : /401|403|api key|unauthor/i.test(raw)
-      ? `${cfg.label} rejected the API key. Check it in .env.local (and Vercel).`
-      : `The analyst hit an error on ${cfg.label}.`;
+    const raw = err instanceof Error ? err.message : String(err);
+    // Always log the real cause server-side — a generic UI message must never
+    // be the only record of a diagnosable failure.
+    console.error(`[analyst] ${cfg.label} (${cfg.model}) failed:`, raw);
+
+    const envVar =
+      cfg.id === "gemini" ? "GEMINI_MODEL" : cfg.id === "groq" ? "GROQ_MODEL" : "ANTHROPIC_MODEL";
+    const modelProblem =
+      /not found|does not exist|no longer available|not supported|unsupported|deprecat/i.test(raw) ||
+      (/404/.test(raw) && /model/i.test(raw));
+
+    const message = modelProblem
+      ? `Model "${cfg.model}" isn't usable on ${cfg.label}. Set ${envVar} to a current model id. (${raw.slice(0, 160)})`
+      : /429|rate limit|quota|resource_exhausted/i.test(raw)
+      ? `${cfg.label}'s free tier is rate-limited or out of quota — try again shortly.`
+      : /401|403|api[ _-]?key|unauthor|permission|invalid_argument.*key/i.test(raw)
+      ? `${cfg.label} rejected the API key. Check it in .env.local (and Vercel), then restart the dev server.`
+      : `The analyst hit an error on ${cfg.label}: ${raw.slice(0, 160)}`;
+
     return NextResponse.json({ error: "failed", message, provider: cfg.label }, { status: 502 });
   }
 }

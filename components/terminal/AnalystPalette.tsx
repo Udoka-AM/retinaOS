@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { IconSpark, IconArrowUpRight } from "@/components/brand/Icons";
+import { MiniMarkdown } from "@/components/terminal/MiniMarkdown";
 import { shortAddr } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
@@ -128,7 +129,7 @@ export function AnalystPalette() {
             </div>
           ) : result?.kind === "answer" ? (
             <div>
-              <p className="whitespace-pre-wrap text-sm leading-relaxed text-fg">{result.answer}</p>
+              <MiniMarkdown text={result.answer} />
               {result.citations.length > 0 && (
                 <div className="mt-4 flex flex-wrap gap-2 border-t border-hairline pt-4">
                   <span className="text-[11px] uppercase tracking-wide text-fg-dim">Verify</span>

@@ -183,3 +183,31 @@ Accurate PnL is genuinely hard — ship it labeled "best-effort" first, refine.
 - **M4** Holder tables + Cortex v2 (real PnL, concentration, sybil).
 - **M5** Server-side alerts (email + push) + SIWE auth + tiers.
 - **M6** Public API + docs.
+
+---
+
+## Appendix — AI Analyst provider (interim)
+
+The Analyst runs on a pluggable provider (`lib/ai/provider.ts`), resolved in order:
+
+| Priority | Env var | Provider | Cost |
+|---|---|---|---|
+| 1 | `ANTHROPIC_API_KEY` | Claude (`claude-opus-4-8`) | paid — the eventual target |
+| 2 | `GEMINI_API_KEY` | Gemini (`gemini-3.5-flash`) | **free** |
+| 3 | `GROQ_API_KEY` | Groq (`llama-3.3-70b-versatile`) | **free** ~30 rpm / 1,000 rpd |
+
+Reverting to Claude is *only* setting `ANTHROPIC_API_KEY` — no code change. Both free
+providers are driven through their OpenAI-compatible endpoints, so they share one code
+path; the Anthropic SDK path is separate. All three use the same tools, system prompt,
+grounding rules and citation logic.
+
+**Two Gemini model traps** (both verified against the live API):
+
+1. `gemini-2.5-flash` is still returned by `/models` but **404s at call time** —
+   *"no longer available to new users."* Listing ≠ usable.
+2. The `gemini-flash-latest` alias tracks the *newest* model (3.6), which carries a
+   **tighter free quota** and 429s while `gemini-3.5-flash` still has headroom.
+
+So the default is pinned to `gemini-3.5-flash`. If quota runs out, set
+`GEMINI_MODEL=gemini-3.5-flash-lite`. Re-probe with
+`GET /v1beta/openai/models` + a 1-token completion per candidate before changing it.

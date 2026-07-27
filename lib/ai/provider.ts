@@ -39,8 +39,13 @@ export function resolveProvider(): ProviderConfig | null {
     return {
       id: "gemini",
       label: "Gemini",
-      // override with GEMINI_MODEL if Google renames the free-tier flash model
-      model: process.env.GEMINI_MODEL || "gemini-2.5-flash",
+      // Pinned deliberately. Two traps here, both verified against the API:
+      //  - Old ids (gemini-2.5-flash) are still listed by /models but 404 at
+      //    call time: "no longer available to new users".
+      //  - "gemini-flash-latest" tracks the newest model (3.6), which has a
+      //    *tighter* free quota and 429s while 3.5-flash still has headroom.
+      // If quota runs out, gemini-3.5-flash-lite is the cheapest fallback.
+      model: process.env.GEMINI_MODEL || "gemini-3.5-flash",
       baseURL: GEMINI_BASE,
       apiKey: gemini,
     };
