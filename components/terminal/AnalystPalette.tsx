@@ -9,7 +9,7 @@ import { cn } from "@/lib/utils";
 
 type Citation = { type: string; address: string };
 type Result =
-  | { kind: "answer"; answer: string; citations: Citation[] }
+  | { kind: "answer"; answer: string; citations: Citation[]; provider?: string }
   | { kind: "notice"; message: string }
   | { kind: "error"; message: string };
 
@@ -74,7 +74,13 @@ export function AnalystPalette() {
         const data = await res.json();
         if (data.error === "no_key") setResult({ kind: "notice", message: data.message });
         else if (data.error) setResult({ kind: "error", message: data.message ?? "Something went wrong." });
-        else setResult({ kind: "answer", answer: data.answer, citations: data.citations ?? [] });
+        else
+          setResult({
+            kind: "answer",
+            answer: data.answer,
+            citations: data.citations ?? [],
+            provider: data.provider,
+          });
       } catch {
         setResult({ kind: "error", message: "Couldn't reach the analyst." });
       } finally {
@@ -140,6 +146,7 @@ export function AnalystPalette() {
               )}
               <p className="mt-4 text-[11px] text-fg-dim">
                 Grounded in live on-chain data · not financial advice, no price predictions.
+                {result.provider && <> · via {result.provider}</>}
               </p>
             </div>
           ) : result?.kind === "notice" ? (

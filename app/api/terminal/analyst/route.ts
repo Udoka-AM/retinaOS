@@ -1,11 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import Anthropic from "@anthropic-ai/sdk";
+import OpenAI from "openai";
 import { provider, type FeedView } from "@/lib/data";
+import { resolveProvider, NO_KEY_MESSAGE } from "@/lib/ai/provider";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
 
-const MODEL = "claude-opus-4-8";
 const MAX_ITERS = 6;
 
 const SYSTEM = `You are the Retina Terminal AI Market Analyst for Robinhood Chain (an EVM chain).
@@ -22,12 +23,16 @@ Rules:
 - "Cortex" scores are RetinaOS's own risk (token, higher = riskier) and reputation (wallet, higher = better) models.
 - Keep it to a few short paragraphs. No hype, no emojis.`;
 
-const tools: Anthropic.Tool[] = [
+/* ---------- provider-neutral tool definitions ---------- */
+
+type ToolDef = { name: string; description: string; schema: Record<string, any> };
+
+const TOOLS: ToolDef[] = [
   {
     name: "search_tokens",
     description:
       "List tokens on Robinhood Chain from the live discovery feed. Use to find tokens, get their contract addresses, or scan the market by trending / newest / top-volume.",
-    input_schema: {
+    schema: {
       type: "object",
       properties: {
         view: {
@@ -37,13 +42,14 @@ const tools: Anthropic.Tool[] = [
         },
         query: { type: "string", description: "Optional symbol/name filter (case-insensitive substring)" },
       },
+      required: [],
     },
   },
   {
     name: "get_token",
     description:
       "Deep detail for one token: price, liquidity, volume, holders & top-holder concentration, Cortex risk score with flags, and recent trade count. Accepts a 0x contract address (preferred) or a symbol.",
-    input_schema: {
+    schema: {
       type: "object",
       properties: { addressOrSymbol: { type: "string" } },
       required: ["addressOrSymbol"],
@@ -53,7 +59,7 @@ const tools: Anthropic.Tool[] = [
     name: "get_wallet",
     description:
       "Profile for one wallet address: portfolio value, holdings, transaction/transfer counts, and Cortex reputation score with behavioral tags. Accepts a 0x address.",
-    input_schema: {
+    schema: {
       type: "object",
       properties: { address: { type: "string" } },
       required: ["address"],
@@ -99,7 +105,8 @@ async function runTool(name: string, input: any, cites: Set<string>): Promise<st
       if (!isAddress(address)) {
         const feed = await provider.getDiscoveryFeed("top");
         const match = feed.tokens.find((t) => t.symbol.toLowerCase() === address.toLowerCase());
-        if (!match) return JSON.stringify({ error: `No token matched "${address}". Call search_tokens to find its address.` });
+        if (!match)
+          return JSON.stringify({ error: `No token matched "${address}". Call search_tokens to find its address.` });
         address = match.address;
       }
       const d = await provider.getTokenDetail(address);
@@ -162,16 +169,109 @@ async function runTool(name: string, input: any, cites: Set<string>): Promise<st
   }
 }
 
+/* ---------- Claude (Anthropic) path ---------- */
+
+async function runAnthropic(model: string, apiKey: string, question: string, cites: Set<string>) {
+  const client = new Anthropic({ apiKey });
+  const tools: Anthropic.Tool[] = TOOLS.map((t) => ({
+    name: t.name,
+    description: t.description,
+    input_schema: t.schema as Anthropic.Tool.InputSchema,
+  }));
+  const messages: Anthropic.MessageParam[] = [{ role: "user", content: question }];
+
+  for (let i = 0; i < MAX_ITERS; i++) {
+    const res = await client.messages.create({
+      model,
+      max_tokens: 3000,
+      thinking: { type: "adaptive" },
+      output_config: { effort: "medium" },
+      system: SYSTEM,
+      tools,
+      messages,
+    } as any);
+
+    if (res.stop_reason !== "tool_use") {
+      return res.content
+        .filter((b: any) => b.type === "text")
+        .map((b: any) => b.text)
+        .join("\n")
+        .trim();
+    }
+    messages.push({ role: "assistant", content: res.content });
+    const results: Anthropic.ToolResultBlockParam[] = [];
+    for (const block of res.content as any[]) {
+      if (block.type === "tool_use") {
+        results.push({
+          type: "tool_result",
+          tool_use_id: block.id,
+          content: await runTool(block.name, block.input, cites),
+        });
+      }
+    }
+    messages.push({ role: "user", content: results });
+  }
+  return null;
+}
+
+/* ---------- OpenAI-compatible path (Gemini / Groq) ---------- */
+
+async function runOpenAICompatible(
+  model: string,
+  apiKey: string,
+  baseURL: string,
+  question: string,
+  cites: Set<string>
+) {
+  const client = new OpenAI({ apiKey, baseURL });
+  const tools = TOOLS.map((t) => ({
+    type: "function" as const,
+    function: { name: t.name, description: t.description, parameters: t.schema },
+  }));
+
+  const messages: any[] = [
+    { role: "system", content: SYSTEM },
+    { role: "user", content: question },
+  ];
+
+  for (let i = 0; i < MAX_ITERS; i++) {
+    const res = await client.chat.completions.create({
+      model,
+      max_tokens: 2000,
+      messages,
+      tools,
+    });
+
+    const msg = res.choices[0]?.message;
+    if (!msg) return null;
+
+    const calls = msg.tool_calls ?? [];
+    if (calls.length === 0) return (msg.content ?? "").trim();
+
+    messages.push(msg);
+    for (const call of calls as any[]) {
+      let args: any = {};
+      try {
+        args = JSON.parse(call.function?.arguments || "{}");
+      } catch {
+        /* tolerate malformed args */
+      }
+      messages.push({
+        role: "tool",
+        tool_call_id: call.id,
+        content: await runTool(call.function?.name, args, cites),
+      });
+    }
+  }
+  return null;
+}
+
+/* ---------- route ---------- */
+
 export async function POST(req: NextRequest) {
-  if (!process.env.ANTHROPIC_API_KEY) {
-    return NextResponse.json(
-      {
-        error: "no_key",
-        message:
-          "The AI Analyst needs an Anthropic API key. Set ANTHROPIC_API_KEY in your environment (.env.local locally, or the Vercel project settings) to enable it.",
-      },
-      { status: 200 }
-    );
+  const cfg = resolveProvider();
+  if (!cfg) {
+    return NextResponse.json({ error: "no_key", message: NO_KEY_MESSAGE }, { status: 200 });
   }
 
   const body = await req.json().catch(() => ({}));
@@ -181,61 +281,42 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "empty", message: "Ask a question." }, { status: 400 });
   }
 
-  const client = new Anthropic();
+  const ctxNote = context?.tokenAddress
+    ? `\n\n[The user is currently viewing token ${context.tokenAddress}.]`
+    : context?.walletAddress
+    ? `\n\n[The user is currently viewing wallet ${context.walletAddress}.]`
+    : "";
+
   const cites = new Set<string>();
 
-  const ctxNote =
-    context?.tokenAddress
-      ? `\n\n[The user is currently viewing token ${context.tokenAddress}.]`
-      : context?.walletAddress
-      ? `\n\n[The user is currently viewing wallet ${context.walletAddress}.]`
-      : "";
-
-  const messages: Anthropic.MessageParam[] = [
-    { role: "user", content: question + ctxNote },
-  ];
-
   try {
-    for (let i = 0; i < MAX_ITERS; i++) {
-      const res = await client.messages.create({
-        model: MODEL,
-        max_tokens: 3000,
-        thinking: { type: "adaptive" },
-        output_config: { effort: "medium" },
-        system: SYSTEM,
-        tools,
-        messages,
-      } as any);
+    const answer =
+      cfg.id === "anthropic"
+        ? await runAnthropic(cfg.model, cfg.apiKey, question + ctxNote, cites)
+        : await runOpenAICompatible(cfg.model, cfg.apiKey, cfg.baseURL!, question + ctxNote, cites);
 
-      if (res.stop_reason !== "tool_use") {
-        const answer = res.content
-          .filter((b: any) => b.type === "text")
-          .map((b: any) => b.text)
-          .join("\n")
-          .trim();
-        const citations = [...cites].map((c) => {
-          const [type, address] = c.split(":");
-          return { type, address };
-        });
-        return NextResponse.json({ answer: answer || "No answer produced.", citations });
-      }
+    const citations = [...cites].map((c) => {
+      const [type, address] = c.split(":");
+      return { type, address };
+    });
 
-      messages.push({ role: "assistant", content: res.content });
-      const toolResults: Anthropic.ToolResultBlockParam[] = [];
-      for (const block of res.content as any[]) {
-        if (block.type === "tool_use") {
-          const out = await runTool(block.name, block.input, cites);
-          toolResults.push({ type: "tool_result", tool_use_id: block.id, content: out });
-        }
-      }
-      messages.push({ role: "user", content: toolResults });
-    }
     return NextResponse.json({
-      answer: "I couldn't finish analyzing that in time — try a more specific question.",
-      citations: [],
+      answer: answer || "I couldn't finish analyzing that — try a more specific question.",
+      citations,
+      provider: cfg.label,
     });
   } catch (err) {
-    const msg = err instanceof Error ? err.message : "analyst error";
-    return NextResponse.json({ error: "failed", message: msg }, { status: 502 });
+    const raw = err instanceof Error ? err.message : "analyst error";
+    // surface actionable causes without leaking provider internals
+    const message = /model/i.test(raw) && /not found|does not exist|404/i.test(raw)
+      ? `The configured model "${cfg.model}" isn't available on ${cfg.label}. Set ${
+          cfg.id === "gemini" ? "GEMINI_MODEL" : cfg.id === "groq" ? "GROQ_MODEL" : "ANTHROPIC_MODEL"
+        } to a valid model id.`
+      : /429|rate/i.test(raw)
+      ? `${cfg.label}'s free tier is rate-limited right now — try again in a moment.`
+      : /401|403|api key|unauthor/i.test(raw)
+      ? `${cfg.label} rejected the API key. Check it in .env.local (and Vercel).`
+      : `The analyst hit an error on ${cfg.label}.`;
+    return NextResponse.json({ error: "failed", message, provider: cfg.label }, { status: 502 });
   }
 }
