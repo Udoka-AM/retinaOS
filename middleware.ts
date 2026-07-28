@@ -12,7 +12,8 @@ export function middleware(request: NextRequest) {
     !pathname.startsWith("/terminal/") &&
     !pathname.startsWith("/api/") &&
     !pathname.startsWith("/_next/") &&
-    pathname !== "/favicon.ico"
+    pathname !== "/favicon.ico" &&
+    pathname !== "/favicon.svg"
   ) {
     const url = request.nextUrl.clone();
     url.pathname = pathname === "/" ? "/terminal" : `/terminal${pathname}`;
