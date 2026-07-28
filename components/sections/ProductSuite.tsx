@@ -1,6 +1,7 @@
 import { IconReticle, IconCortex, IconAperture, IconArrowUpRight } from "@/components/brand/Icons";
 import { Check } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { TERMINAL_URL } from "@/lib/urls";
 
 const DOCS = "https://retinaos.mintlify.app";
 
@@ -10,7 +11,7 @@ const products = [
     tagline: "See what matters.",
     accent: "lime",
     Icon: IconReticle,
-    href: "/terminal",
+    href: TERMINAL_URL,
     external: false,
     desc: "The market intelligence dashboard. Real-time token discovery, deep token and wallet pages, and an AI analyst you can just talk to.",
     features: [

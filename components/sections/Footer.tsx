@@ -3,6 +3,7 @@ import { RetinaWordmark, RetinaMark } from "@/components/brand/RetinaMark";
 import { buttonVariants } from "@/components/ui/button";
 import { IconArrowUpRight } from "@/components/brand/Icons";
 import { cn } from "@/lib/utils";
+import { TERMINAL_URL } from "@/lib/urls";
 
 const DOCS = "https://retinaos.mintlify.app";
 const GITHUB = "https://github.com/el-uno/retinaOS";
@@ -13,7 +14,7 @@ const cols: { title: string; links: FooterLink[] }[] = [
   {
     title: "Products",
     links: [
-      { label: "Retina Terminal", href: "/terminal" },
+      { label: "Retina Terminal", href: TERMINAL_URL, external: true },
       { label: "Cortex", href: `${DOCS}/cortex/overview`, external: true },
       { label: "Retina Wallet", href: "#wallet" },
       { label: "Public API", href: `${DOCS}/api/overview`, external: true },
@@ -22,7 +23,7 @@ const cols: { title: string; links: FooterLink[] }[] = [
   {
     title: "Platform",
     links: [
-      { label: "Discovery feed", href: "/terminal" },
+      { label: "Discovery feed", href: TERMINAL_URL, external: true },
       { label: "AI Market Analyst", href: `${DOCS}/retina-terminal/ai-market-analyst`, external: true },
       { label: "Alerts", href: `${DOCS}/retina-terminal/alerts`, external: true },
       { label: "Reputation scoring", href: `${DOCS}/concepts/reputation-scoring`, external: true },
@@ -102,10 +103,10 @@ export function Footer() {
             </div>
           </div>
           <div className="flex gap-3">
-            <Link href="/terminal" className={cn(buttonVariants(), "group")}>
+            <a href={TERMINAL_URL} className={cn(buttonVariants(), "group")}>
               Launch Terminal
               <IconArrowUpRight className="transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
-            </Link>
+            </a>
             <a
               href={DOCS}
               target="_blank"

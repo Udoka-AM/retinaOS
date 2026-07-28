@@ -1,15 +1,15 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
 import { Menu, X } from "lucide-react";
 import { RetinaWordmark } from "@/components/brand/RetinaMark";
 import { IconArrowUpRight } from "@/components/brand/Icons";
 import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { TERMINAL_URL } from "@/lib/urls";
 
 const links = [
-  { label: "Terminal", href: "/terminal" },
+  { label: "Terminal", href: TERMINAL_URL },
   { label: "Cortex", href: "#suite" },
   { label: "Wallet", href: "#wallet" },
   { label: "How it works", href: "#flow" },
@@ -66,10 +66,10 @@ export function Nav() {
             >
               Docs
             </a>
-            <Link href="/terminal" className={cn(buttonVariants({ size: "sm" }), "group")}>
+            <a href={TERMINAL_URL} className={cn(buttonVariants({ size: "sm" }), "group")}>
               Launch Terminal
               <IconArrowUpRight className="transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
-            </Link>
+            </a>
           </div>
 
           <button
@@ -103,13 +103,13 @@ export function Nav() {
               >
                 Docs
               </a>
-              <Link
-                href="/terminal"
+              <a
+                href={TERMINAL_URL}
                 onClick={() => setOpen(false)}
                 className={cn(buttonVariants({ size: "sm" }), "flex-1")}
               >
                 Launch Terminal
-              </Link>
+              </a>
             </div>
           </div>
         )}

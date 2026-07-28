@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { buttonVariants } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { RetinaMark } from "@/components/brand/RetinaMark";
@@ -9,6 +8,7 @@ import {
   IconLock,
 } from "@/components/brand/Icons";
 import { cn } from "@/lib/utils";
+import { TERMINAL_URL } from "@/lib/urls";
 
 const feedRows = [
   { sym: "NOVA", name: "Nova Protocol", mc: "$1.8M", chg: "+142%", risk: 18, tag: "Early Mover", up: true },
@@ -52,16 +52,16 @@ export function Hero() {
           </p>
 
           <div className="mt-8 flex flex-wrap items-center gap-3">
-            <Link href="/terminal" className={cn(buttonVariants({ size: "lg" }), "group")}>
+            <a href={TERMINAL_URL} className={cn(buttonVariants({ size: "lg" }), "group")}>
               Launch Terminal
               <IconArrowUpRight className="transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
-            </Link>
-            <Link
-              href="/terminal"
+            </a>
+            <a
+              href={TERMINAL_URL}
               className={cn(buttonVariants({ size: "lg", variant: "outline" }))}
             >
               Explore the feed
-            </Link>
+            </a>
           </div>
 
           <div className="mt-10 flex flex-wrap items-center gap-x-8 gap-y-4 text-sm text-fg-dim">

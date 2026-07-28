@@ -1,8 +1,8 @@
-import Link from "next/link";
 import { buttonVariants } from "@/components/ui/button";
 import { RetinaMark } from "@/components/brand/RetinaMark";
 import { IconArrowUpRight } from "@/components/brand/Icons";
 import { cn } from "@/lib/utils";
+import { TERMINAL_URL } from "@/lib/urls";
 
 const DOCS = "https://retinaos.mintlify.app";
 
@@ -24,10 +24,10 @@ export function CTA() {
               Open the Terminal and start scanning the market in seconds. No login to browse.
             </p>
             <div className="mt-9 flex flex-wrap items-center justify-center gap-3">
-              <Link href="/terminal" className={cn(buttonVariants({ size: "lg" }), "group")}>
+              <a href={TERMINAL_URL} className={cn(buttonVariants({ size: "lg" }), "group")}>
                 Launch Terminal
                 <IconArrowUpRight className="transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
-              </Link>
+              </a>
               <a
                 href={DOCS}
                 target="_blank"
