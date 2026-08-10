@@ -175,14 +175,35 @@ Accurate PnL is genuinely hard — ship it labeled "best-effort" first, refine.
 
 ---
 
-## 11. Milestones
+## 11. Milestones — staged execution plan
 
-- **M1** Ingestion + backfill + `tokens/pools/swaps/transfers` in Postgres, parity-checked.
-- **M2** DB-backed provider; cut over Discovery Feed + Token pages (reads).
-- **M3** Realtime SSE/WS → sub-second feed.
-- **M4** Holder tables + Cortex v2 (real PnL, concentration, sybil).
-- **M5** Server-side alerts (email + push) + SIWE auth + tiers.
-- **M6** Public API + docs.
+Supersedes the flat M1–M6 list with a gated, one-DEX-first sequence. Each stage has a hard
+completion gate before the next starts; every step is independently shippable and reversible.
+
+| Stage | Scope | Est. | Gate |
+|---|---|---|---|
+| **0** | DEX/pool discovery: registry of factory/router/pool addresses, ABIs, pool type (V2/V3/V4/custom), earliest backfill block, 10–20 test-fixture pools. Pick the single highest-volume DEX for Stage 1–3. | 2–3d | Can manually decode pool-creation, swap, mint, burn txs for the chosen DEX. |
+| **1** | `apps/indexer` workspace: config, DB connection, migrations, structured logging, health endpoint, graceful shutdown, checkpoint storage, feature flags. Plain Postgres — **no Timescale/Redis yet**. | 3–4d | Worker connects to chain + DB, records latest block, resumes correctly after restart. |
+| **2** | Block ingestion loop: checkpoint → bounded block range → logs → decode → single-transaction write → advance checkpoint → catch-up → near-live. Tables: `indexed_blocks`, `indexer_checkpoints`, `tokens`, `pools`, `swaps`, `liquidity_events`, `ingestion_failures`. Unique `(chain_id, tx_hash, log_index)`; 20–50 block reorg buffer w/ rollback by block hash. | 5–7d | Re-running the same block range twice yields identical DB contents. |
+| **3** | Full pipeline for the one chosen DEX: pool discovery from factory events, token metadata, buy/sell decode, reserves, base/quote resolution, USD price via WETH/stables, 1m candles rolled to 5m/1h/1d, rolling volume/liquidity/tx-count. Transfers scoped to *discovered tokens only* (not full-chain) to bound DB growth. | 5–7d | Price/volume/liquidity/tx-count/candle shape within ~1–3% of GeckoTerminal for sample pools. |
+| **4** | `lib/data/db.ts` implementing `TerminalDataProvider`; feed/token/OHLCV/trades queries; Blockscout retained for wallet profiles. Add `TERMINAL_DATA_PROVIDER=geckoterminal\|shadow\|indexer` flag — shadow mode serves GeckoTerminal to users while diffing indexer output server-side. | 4–5d | 7 days of shadow comparisons, no material gaps or unexplained diffs. |
+| **5** | Controlled rollout, one read path at a time: OHLCV → trades → token detail → new-token feed → trending/top. One-variable rollback to GeckoTerminal per cutover. Monitoring: block lag, failed ranges, RPC errors, events/min, DB size, query latency, unknown event sigs, reorg count, price-parity delta. | 3–4d + monitoring | Block lag <10s, feed queries <300ms, zero duplicate swaps, clean restart recovery, no missing confirmed ranges. |
+| **6** | Holders (from transfers, excluding zero/burn/infra addresses), top-10 concentration, wallet positions/cost-basis/PnL/win-rate/entry-timing from swaps, liquidity-pull detection, basic wash-trade signals, funding-graph groundwork for sybil. Run old + new Cortex scores side by side before replacing the heuristic. | 7–10d | Manual validation against explorer history for ≥20 tokens and ≥20 wallets. |
+| **7** | Publish pool/swap/score deltas; SSE endpoint off the persistent worker; feed goes push not poll. Move `AlertsEngine` evaluation server-side; persist + dedupe fires; web push first, email after; keep client-side alerts running through migration. Introduce Redis only if Postgres notify/internal stream isn't enough. | 5–7d | Alert delivered with the tab closed; no duplicate deliveries. |
+| **8** | SIWE auth, saved alerts/watchlists, API keys + rate limiting, Free/Pro gates, documented public endpoints (tokens/pools/candles/trades/scores). | 5–7d | — |
+
+**First release scope** (Stages 0–5, one DEX only): pool discovery, swaps, liquidity events,
+token metadata, prices/OHLCV, new/top/trending feeds, token details, shadow comparison,
+GeckoTerminal rollback. Everything else (full-chain transfers, sybil clustering, historical
+wallet PnL, Timescale, Redis, email, auth, billing, public API) is explicitly deferred past
+first release.
+
+**Dev-time cost:** ~$0 (local worker, Neon free Postgres, Alchemy free RPC/WSS, existing
+Vercel). **Beta cost:** ~$5–20/mo (Railway worker + Neon; Redis only if/when needed).
+
+**Immediate next step (Stage 0 sprint):** DEX registry + verified ABIs → `apps/indexer`
+scaffold + migrations → block checkpointing → pool-discovery decoder for the chosen DEX →
+swap ingestion → idempotency/restart tests → parity report for 10 known pools.
 
 ---
 

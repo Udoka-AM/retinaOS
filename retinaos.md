@@ -21,11 +21,11 @@ One coherent system: **see → understand → act.**
 ### Brand pillars
 1. **Sight** — clarity, seeing what others haven't noticed yet, cutting through noise
 2. **Intelligence** — synthesized understanding, not just raw data dumped on a screen
-3. **Speed** — reflexive, near-instant execution once judgment has been made
+3. **Speed** — reflexive, near-instant execution once judgment has been made.
 
 ### Brand personality & voice
 - Precise, confident, unembellished — reads like a trained analyst, not a hype account
-- Calm under chaotic market conditions — the brand is the steady eye in a noisy room
+- Calm under chaotic market conditions — the brand is the steady eye in a noisy room.
 - Sharp, minimal copy; explicitly avoid crypto-hype tone (no rocket emojis, no "to the moon" energy) — trust is the actual product, and hype language undercuts it
 
 ### Visual language direction
