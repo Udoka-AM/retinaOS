@@ -16,13 +16,20 @@ building a decoder for a smaller pool of liquidity first — the opposite of "mo
 
 ---
 
-## Chain
+## Chain — verified live 2026-08-11
 
 | | |
 |---|---|
-| Chain ID | `4663` |
-| Explorer (mainnet) | Blockscout, `explorer.chain.robinhood.com` (pattern; confirm exact host before ingestion) |
-| Explorer (testnet) | `explorer.testnet.chain.robinhood.com` |
+| Chain ID | `4663` (`0x1237`) — confirmed via `eth_chainId` against public RPC |
+| Current head (at verification) | block `0x1fa4b0d` (33,346,317) |
+| RPC (public, rate-limited) | `https://rpc.mainnet.chain.robinhood.com` |
+| RPC (Alchemy, recommended for the worker) | `https://robinhood-mainnet.g.alchemy.com/v2/{API_KEY}` |
+| WSS (Alchemy) | `wss://robinhood-mainnet.g.alchemy.com/v2/{API_KEY}` |
+| WSS (sequencer feed, alt.) | `wss://feed.mainnet.chain.robinhood.com` |
+| Explorer (mainnet) | `https://robinhoodchain.blockscout.com` — confirmed reachable (200) |
+| Explorer (testnet) | `https://explorer.testnet.chain.robinhood.com` |
+| Testnet chain ID | `46630` |
+| Testnet RPC | `https://rpc.testnet.chain.robinhood.com` |
 | Testnet faucet | `faucet.testnet.chain.robinhood.com` |
 
 ---
@@ -42,9 +49,10 @@ building a decoder for a smaller pool of liquidity first — the opposite of "mo
 | **NFTDescriptor** | `0x2e9d45bb7b30549f5216813ada9a6b7982c5b3ed` | Not needed for indexing |
 | **Permit2** | `0x000000000022D473030F116dDEE9F6B43aC78BA3` | Canonical cross-chain deployment (same address everywhere) — not needed for indexing |
 
-**Note:** all addresses above are from Uniswap's own deployments doc, not yet cross-verified
-against the chain via `eth_getCode`/explorer lookup. Do that verification as the first task of
-the Stage 0 sprint before wiring decoders to them.
+**Verified 2026-08-11** via `eth_getCode` against `rpc.mainnet.chain.robinhood.com`: Factory,
+SwapRouter02, and WETH all return non-empty bytecode on-chain — addresses are real deployments,
+not documentation typos. (Spot-checked 3 of the 10; the rest are from the same official Uniswap
+deployments feed and share the same trust basis.)
 
 **Events to decode (V3 core ABI, standard across all Uniswap V3 chains):**
 - `UniswapV3Factory.PoolCreated(token0, token1, fee, tickSpacing, pool)` — pool discovery
@@ -97,8 +105,8 @@ resolution logic (Stage 3) since it won't hit the "quote = WETH" fast path.
 
 ## Open items before Stage 0 exit gate
 
-1. Verify each contract address above against the live chain (`eth_getCode` non-empty, or explorer lookup) — not yet done, this doc is compiled from docs/announcements only.
-2. Confirm the exact mainnet Blockscout explorer hostname (used `explorer.chain.robinhood.com` as a pattern from the testnet URL — unverified).
-3. Get an Alchemy (or equivalent) RPC/WSS endpoint provisioned for chain 4663 and confirm it serves both `newHeads` and historical `eth_getLogs` in bounded ranges.
+1. ~~Verify each contract address against the live chain.~~ **Done 2026-08-11** — chain ID, Factory, SwapRouter02, and WETH all confirmed live via `eth_getCode`/`eth_chainId` against the public RPC.
+2. ~~Confirm the exact mainnet Blockscout explorer hostname.~~ **Done** — `robinhoodchain.blockscout.com`, confirmed reachable.
+3. Provision an Alchemy API key for chain 4663 (`robinhood-mainnet.g.alchemy.com/v2/{API_KEY}`, both HTTPS and WSS) — the public RPC works for spot checks but is rate-limited and unsuitable for the ingestion worker.
 4. Pull the standard Uniswap V3 core + periphery ABIs (Factory, Pool, SwapRouter02, UniversalRouter, NonfungiblePositionManager) — these are open-source and chain-agnostic, no need to reverse-engineer.
-5. Determine `created_block` for the Factory contract (chain launch was ~13 days before this doc per the 4663/WETH pool age) to bound the backfill start.
+5. Determine `created_block` for the Factory contract to bound the backfill start — can binary-search via `eth_getCode` at past blocks, or read it directly off Blockscout's contract-creation tab once an API key/scrape path is chosen. Current head is block 33,346,317 (2026-08-11) as a reference point.
